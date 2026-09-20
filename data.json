@@ -1,0 +1,331 @@
+{
+  "leagues": [
+    {
+      "id": "league_mehle",
+      "name": "Mehle League",
+      "season": "2026/27",
+      "teams": [
+        "xirdalan_wolves",
+        "msn_fk",
+        "xirdalan_united",
+        "lotu_pisikler",
+        "neweli_fk"
+      ]
+    }
+  ],
+  "teams": [
+    {
+      "id": "xirdalan_wolves",
+      "name": "Xirdalan Wolves",
+      "logo": "🐺"
+    },
+    {
+      "id": "msn_fk",
+      "name": "MSN FK",
+      "logo": "⚽"
+    },
+    {
+      "id": "xirdalan_united",
+      "name": "Xirdalan United",
+      "logo": "🟢"
+    },
+    {
+      "id": "lotu_pisikler",
+      "name": "Lotu Pişiklər",
+      "logo": "🐱"
+    },
+    {
+      "id": "neweli_fk",
+      "name": "Neweli FK",
+      "logo": "🔵"
+    }
+  ],
+  "players": [
+    {
+      "id": "p1",
+      "name": "Ali",
+      "num": "",
+      "team": "xirdalan_wolves",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p2",
+      "name": "Emin",
+      "num": "",
+      "team": "xirdalan_wolves",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p3",
+      "name": "Raul",
+      "num": "",
+      "team": "xirdalan_wolves",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p4",
+      "name": "Huseyin (2 blok)",
+      "num": "",
+      "team": "xirdalan_wolves",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+
+    {
+      "id": "p5",
+      "name": "Fuad",
+      "num": "",
+      "team": "msn_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p6",
+      "name": "Murad",
+      "num": "",
+      "team": "msn_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p7",
+      "name": "Minə",
+      "num": "",
+      "team": "msn_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p8",
+      "name": "Şamxal",
+      "num": "",
+      "team": "msn_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+
+    {
+      "id": "p9",
+      "name": "Amil",
+      "num": "",
+      "team": "xirdalan_united",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p10",
+      "name": "Elmir",
+      "num": "",
+      "team": "xirdalan_united",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p11",
+      "name": "Huseyin",
+      "num": "",
+      "team": "xirdalan_united",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p12",
+      "name": "İsa",
+      "num": "",
+      "team": "xirdalan_united",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p13",
+      "name": "Ümüd",
+      "num": "",
+      "team": "xirdalan_united",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+
+    {
+      "id": "p14",
+      "name": "Kamran",
+      "num": "",
+      "team": "lotu_pisikler",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p15",
+      "name": "Ayxan",
+      "num": "",
+      "team": "lotu_pisikler",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p16",
+      "name": "Ramil",
+      "num": "",
+      "team": "lotu_pisikler",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+
+    {
+      "id": "p17",
+      "name": "Tofik",
+      "num": "",
+      "team": "neweli_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p18",
+      "name": "Arda",
+      "num": "",
+      "team": "neweli_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p19",
+      "name": "Emil",
+      "num": "",
+      "team": "neweli_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    },
+    {
+      "id": "p20",
+      "name": "Vəli",
+      "num": "",
+      "team": "neweli_fk",
+      "goals": 0,
+      "assists": 0,
+      "saves": 0,
+      "points": 0
+    }
+  ],
+  "matches": [
+    {
+      "id": "m1",
+      "h": "MSN FK",
+      "a": "Xirdalan United",
+      "scoreH": 3,
+      "scoreA": 0,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m2",
+      "h": "Lotu Pişiklər",
+      "a": "MSN FK",
+      "scoreH": 4,
+      "scoreA": 1,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m3",
+      "h": "Xirdalan Wolves",
+      "a": "Lotu Pişiklər",
+      "scoreH": 5,
+      "scoreA": 5,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m4",
+      "h": "Neweli FK",
+      "a": "MSN FK",
+      "scoreH": 10,
+      "scoreA": 8,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m5",
+      "h": "Xirdalan United",
+      "a": "Xirdalan Wolves",
+      "scoreH": 3,
+      "scoreA": 0,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m6",
+      "h": "Xirdalan United",
+      "a": "Lotu Pişiklər",
+      "scoreH": 1,
+      "scoreA": 0,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m7",
+      "h": "MSN FK",
+      "a": "Xirdalan Wolves",
+      "scoreH": 9,
+      "scoreA": 9,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    },
+    {
+      "id": "m8",
+      "h": "Neweli FK",
+      "a": "Xirdalan United",
+      "scoreH": 3,
+      "scoreA": 5,
+      "date": "",
+      "time": "",
+      "status": "Başa çatıb"
+    }
+  ]
+}
