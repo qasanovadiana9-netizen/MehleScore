@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1220">
+<title>AliScore</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f3f5f8;color:#111827}
+.header{background:#0b1220;color:#fff;padding:18px 16px 14px;position:sticky;top:0;z-index:10}
+.brand{font-size:27px;font-weight:800;letter-spacing:-1px}.brand span{color:#35d07f}
+.subtitle{font-size:12px;color:#94a3b8;margin-top:3px}
+.nav{display:flex;gap:8px;overflow:auto;padding:10px 12px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:74px;z-index:9}
+.nav button{border:0;background:#f1f5f9;border-radius:10px;padding:9px 13px;font-weight:700;white-space:nowrap;color:#475569}
+.nav button.active{background:#0b1220;color:#fff}
+.container{max-width:850px;margin:auto;padding:16px}
+.section-title{font-size:20px;font-weight:800;margin:6px 0 12px}
+.card{background:#fff;border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 2px 10px #0f172a0c;border:1px solid #e8edf3}
+.match{display:grid;grid-template-columns:1fr 72px 1fr;align-items:center;text-align:center;gap:8px}
+.team{font-weight:750}.logo{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eef2ff;margin:0 auto 6px;font-size:20px}
+.score{font-size:24px;font-weight:850}.muted{font-size:12px;color:#64748b}.status{display:inline-block;font-size:11px;font-weight:800;padding:4px 7px;border-radius:7px;background:#ecfdf5;color:#15803d;margin-bottom:6px}
+.btn{border:0;background:#0b1220;color:#fff;padding:10px 13px;border-radius:10px;font-weight:750;cursor:pointer}.btn.green{background:#18a866}.btn.light{background:#eef2f7;color:#1e293b}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.table{width:100%;border-collapse:collapse;font-size:13px}.table th,.table td{padding:10px 6px;border-bottom:1px solid #edf0f4;text-align:center}.table th:first-child,.table td:first-child{text-align:left}.rank{font-weight:800;width:28px}.form{display:flex;justify-content:center;gap:3px}.dot{width:19px;height:19px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:800;background:#dbeafe;color:#1d4ed8}.empty{text-align:center;padding:30px 10px;color:#64748b}.player{display:flex;align-items:center;gap:12px}.avatar{width:42px;height:42px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-weight:800}.player-info{flex:1}.stats{display:flex;gap:12px;font-size:12px;color:#64748b}.hero{background:linear-gradient(135deg,#0b1220,#18253d);color:#fff;border-radius:18px;padding:20px;margin-bottom:16px}.hero h1{margin:0 0 5px;font-size:25px}.hero p{margin:0;color:#b7c1d1;font-size:13px}
+.modal-bg{display:none;position:fixed;inset:0;background:#0008;z-index:30;padding:20px;align-items:flex-end;justify-content:center}.modal-bg.show{display:flex}.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:600px;padding:20px;max-height:90vh;overflow:auto}.modal h2{margin-top:0}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px;color:#475569}.field input,.field select{width:100%;padding:12px;border:1px solid #dbe1e8;border-radius:10px;font-size:15px}.close{float:right;border:0;background:#eef2f7;border-radius:8px;padding:6px 9px}
+@media(min-width:700px){.modal-bg{align-items:center}.modal{border-radius:18px}.container{padding-top:22px}}
+.admin-box{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:18px;margin-bottom:12px}.admin-ok{color:#15803d;font-weight:800}.admin-no{color:#b91c1c;font-weight:800}.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small-btn{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer;background:#eef2f7;color:#1e293b}.small-btn.red{background:#fee2e2;color:#b91c1c}''
+/* Notifications */
+#notifications{position:fixed;top:86px;right:14px;z-index:9999;width:min(360px,calc(100vw - 28px));display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notification{background:#fff;border-left:4px solid #18a866;border-radius:12px;padding:12px 14px;box-shadow:0 8px 30px #0002;font-weight:700;pointer-events:auto}
+.notification.error{border-left-color:#dc2626}.notification.warning{border-left-color:#f59e0b}.notification.info{border-left-color:#2563eb}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.notification-bell{position:relative;border:0;background:#172438;color:#fff;border-radius:10px;min-width:42px;height:40px;padding:8px 10px;font-size:19px;cursor:pointer}
+#notificationCount{position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid #0b1220}
+.notification-panel{display:none;position:fixed;top:82px;right:16px;width:370px;max-width:calc(100vw - 24px);max-height:520px;background:#fff;color:#111827;border-radius:16px;box-shadow:0 15px 45px #0004;z-index:1000;overflow:hidden;border:1px solid #e5e7eb}
+.notification-panel.open{display:block}.notification-panel-header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px;border-bottom:1px solid #e5e7eb}.notification-panel-title{font-size:17px;font-weight:800}.notification-panel-actions{display:flex;gap:5px}.notification-panel-actions button{border:0;background:#eef2f7;color:#334155;border-radius:7px;padding:6px 8px;font-size:11px;font-weight:700;cursor:pointer}
+#notificationHistory{max-height:440px;overflow:auto}.notification-history-item{display:flex;gap:10px;padding:13px 14px;border-bottom:1px solid #f0f2f5;cursor:pointer}.notification-history-item.unread{background:#eff6ff}.notification-history-icon{width:25px;flex-shrink:0;text-align:center;font-size:20px}.notification-history-content{flex:1;min-width:0}.notification-history-text{font-size:13px;font-weight:650;line-height:1.35}.notification-history-time{margin-top:4px;font-size:10px;color:#64748b}.notification-unread-dot{width:8px;height:8px;margin-top:5px;border-radius:50%;background:#2563eb;flex-shrink:0}.notification-empty{text-align:center;padding:35px 20px;color:#64748b}
+@media(max-width:600px){.notification-panel{top:72px;right:10px;width:calc(100vw - 20px)}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-top"><div><div class="brand">Ali<span>Score</span></div><div class="subtitle">Futbol nəticələri və statistika</div></div><button id="notificationBell" class="notification-bell" onclick="toggleNotificationPanel(event)" title="Bildirişlər">🔔<span id="notificationCount">0</span></button></div>
+</header>
+<div id="notifications"></div>
+<div id="notificationPanel" class="notification-panel">
+  <div class="notification-panel-header"><div class="notification-panel-title">🔔 Bildirişlər</div><div class="notification-panel-actions"><button onclick="markAllNotificationsRead()">Hamısını oxu</button><button onclick="clearNotifications()">Təmizlə</button></div></div>
+  <div id="notificationHistory"></div>
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="showTab('home',this)">Ana səhifə</button>
+  <button onclick="showTab('matches',this)">Matçlar</button>
+  <button onclick="showTab('leagues',this)">Liqalar</button>
+  <button onclick="showTab('teams',this)">Komandalar</button>
+  <button onclick="showTab('players',this)">Oyunçular</button>
+  <button onclick="showTab('admin',this)">🔐 Admin</button>
+</nav>
+
+<main class="container">
+  <section id="home">
+    <div class="hero">
+      <h1>AliScore-a xoş gəlmisiniz</h1>
+      <p>Sənin futbol matç mərkəzin — sadə, sürətli və rahat.</p>
+    </div>
+    <div class="section-title">Yaxın matçlar</div>
+    <div id="homeMatches"></div>
+  </section>
+
+  <section id="matches" hidden>
+    <div class="section-title">Matçlar <button id="addMatchBtn" class="btn green" style="float:right;display:none" onclick="openMatch()">＋ Matç</button></div>
+    <div id="matchesList"></div>
+  </section>
+
+  <section id="leagues" hidden>
+    <div class="section-title">Liqalar <button id="addLeagueBtn" class="btn green" style="float:right;display:none" onclick="openLeague()">＋ Liqa</button></div>
+    <div id="leaguesList"></div>
+  </section>
+
+  <section id="teams" hidden>
+    <div class="section-title">Komandalar <button id="addTeamBtn" class="btn green" style="float:right;display:none" onclick="openTeam()">＋ Komanda</button></div>
+    <div id="teamsList"></div>
+  </section>
+
+  <section id="players" hidden>
+    <div class="section-title">Oyunçular <button id="addPlayerBtn" class="btn green" style="float:right;display:none" onclick="openPlayer()">＋ Oyunçu</button></div>
+    <div id="playersList"></div>
+  </section>
+
+  <section id="admin" hidden>
+    <div class="section-title">🔐 Admin paneli</div>
+    <div id="adminPanel"></div>
+  </section>
+</main>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+let data={matches:[],leagues:[],teams:[],players:[]};
+let isAdmin=false;
+const NOTIFICATION_STORAGE_KEY="aliscore_notifications_v1";
+let notificationHistory=[];
+function getNotificationIcon(type){return type==="error"?"❌":type==="warning"?"⚠️":type==="info"?"ℹ️":"✅"}
+function loadNotifications(){try{const x=localStorage.getItem(NOTIFICATION_STORAGE_KEY);notificationHistory=Array.isArray(x?JSON.parse(x):[])?JSON.parse(x):[]}catch(e){notificationHistory=[]}renderNotificationHistory()}
+function saveNotificationHistory(){try{localStorage.setItem(NOTIFICATION_STORAGE_KEY,JSON.stringify(notificationHistory.slice(0,50)))}catch(e){}}
+function formatNotificationTime(t){const d=new Date(t),diff=Math.floor((Date.now()-d.getTime())/1000);if(!Number.isFinite(diff))return "";if(diff<10)return "indi";if(diff<60)return diff+" san əvvəl";if(diff<3600)return Math.floor(diff/60)+" dəq əvvəl";if(diff<86400)return Math.floor(diff/3600)+" saat əvvəl";return d.toLocaleString("az-AZ",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
+function addNotificationHistory(text,type="success"){notificationHistory.unshift({id:Date.now()+Math.random(),text:String(text),type,icon:getNotificationIcon(type),time:new Date().toISOString(),read:false});saveNotificationHistory();renderNotificationHistory()}
+function renderNotificationHistory(){const box=document.getElementById("notificationHistory"),badge=document.getElementById("notificationCount");if(!box||!badge)return;const unread=notificationHistory.filter(n=>!n.read).length;badge.style.display=unread?"flex":"none";badge.textContent=unread>99?"99+":unread;if(!notificationHistory.length){box.innerHTML='<div class="notification-empty">🔕<br><br>Hələ bildiriş yoxdur.</div>';return}box.innerHTML=notificationHistory.map(n=>{const cls=n.read?"":"unread";const dot=n.read?"":"<div class=\"notification-unread-dot\"></div>";return '<div class="notification-history-item '+cls+'" data-id="'+n.id+'" onclick="readNotification(this.dataset.id)"><div class="notification-history-icon">'+n.icon+'</div><div class="notification-history-content"><div class="notification-history-text">'+esc(n.text)+'</div><div class="notification-history-time">'+formatNotificationTime(n.time)+'</div></div>'+dot+'</div>'}).join("")}
+function readNotification(id){notificationHistory=notificationHistory.map(n=>String(n.id)===String(id)?{...n,read:true}:n);saveNotificationHistory();renderNotificationHistory()}
+function markAllNotificationsRead(){notificationHistory=notificationHistory.map(n=>({...n,read:true}));saveNotificationHistory();renderNotificationHistory()}
+function clearNotifications(){notificationHistory=[];saveNotificationHistory();renderNotificationHistory()}
+function toggleNotificationPanel(e){if(e)e.stopPropagation();document.getElementById("notificationPanel")?.classList.toggle("open")}
+document.addEventListener("click",e=>{const p=document.getElementById("notificationPanel"),b=document.getElementById("notificationBell");if(p&&b&&p.classList.contains("open")&&!p.contains(e.target)&&!b.contains(e.target))p.classList.remove("open")});
+function notify(text,type="success",saveHistory=true){if(saveHistory)addNotificationHistory(text,type);const box=document.getElementById("notifications");if(!box)return;const toast=document.createElement("div");toast.className="notification "+type;toast.textContent=text;box.appendChild(toast);setTimeout(()=>toast.remove(),3500)}
+
+async function api(url,opts={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts});if(!r.ok){let e={};try{e=await r.json()}catch{};throw new Error(e.error||'Xəta');}return r.json()}
+async function load(){const r=await api('/api/data');data=r.data;isAdmin=r.isAdmin;renderAll()}
+async function save(){try{const r=await api('/api/data',{method:'PUT',body:JSON.stringify(data)});data=r.data;renderAll()}catch(e){alert('Yadda saxlamaq mümkün olmadı: '+e.message)}}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function showTab(id,btn){document.querySelectorAll('main section').forEach(s=>s.hidden=s.id!==id);document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll()}
+function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show')}
+function closeModal(){document.getElementById('modalBg').classList.remove('show')}
+function requireAdmin(){if(!isAdmin){alert('Bu əməliyyat yalnız admin üçündür.');return false}return true}
+async function adminLogin(){try{await api('/api/login',{method:'POST',body:JSON.stringify({password:document.getElementById('adminPass').value})});isAdmin=true;renderAll();notify('Admin rejimi aktiv edildi.');}catch(e){alert('Şifrə yanlışdır.')}}
+async function adminLogout(){await api('/api/logout',{method:'POST'});isAdmin=false;renderAll();notify('Admin rejimindən çıxıldı.')}
+function editMatch(id){if(!requireAdmin())return;const m=data.matches.find(x=>String(x.id)===String(id));if(!m)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matçı dəyiş</h2><div class="field"><label>Ev sahibi</label><input id="emh" value="${esc(m.h)}"></div><div class="field"><label>Qonaq</label><input id="ema" value="${esc(m.a)}"></div><div class="field"><label>Ev sahibinin qolu</label><input id="esh" type="number" min="0" value="${m.scoreH}"></div><div class="field"><label>Qonağın qolu</label><input id="esa" type="number" min="0" value="${m.scoreA}"></div><div class="field"><label>Status</label><select id="ems"><option ${m.status==='Planlaşdırılıb'?'selected':''}>Planlaşdırılıb</option><option ${m.status==='Davam edir'?'selected':''}>Davam edir</option><option ${m.status==='Başa çatıb'?'selected':''}>Başa çatıb</option></select></div><div class="actions"><button class="btn green" onclick="saveMatch(${id})">Yadda saxla</button><button class="btn light" onclick="deleteMatch(${id})">Sil</button></div>`)}
+async function saveMatch(id){const m=data.matches.find(x=>String(x.id)===String(id));if(!m)return;m.h=emh.value.trim();m.a=ema.value.trim();m.scoreH=+esh.value||0;m.scoreA=+esa.value||0;m.status=ems.value;await save();closeModal();notify('Matç yeniləndi.')}
+async function deleteMatch(id){if(!requireAdmin())return;if(confirm('Bu matçı silmək istəyirsiniz?')){data.matches=data.matches.filter(x=>String(x.id)!==String(id));await save();closeModal()}}
+function editTeam(id){if(!requireAdmin())return;const t=data.teams.find(x=>String(x.id)===String(id));if(!t)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Komandanı dəyiş</h2><div class="field"><label>Ad</label><input id="etn" value="${esc(t.name)}"></div><div class="field"><label>Loqo / emoji</label><input id="ete" value="${esc(t.logo||'⚽')}"></div><div class="actions"><button class="btn green" onclick="saveTeam(${id})">Yadda saxla</button></div>`)}
+async function saveTeam(id){const t=data.teams.find(x=>String(x.id)===String(id));if(!t)return;t.name=etn.value.trim()||t.name;t.logo=ete.value||'⚽';await save();closeModal();notify('Komanda yeniləndi.')}
+function openMatch(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matç əlavə et</h2><div class="field"><label>Ev sahibi</label><input id="mh"></div><div class="field"><label>Qonaq</label><input id="ma"></div><div class="field"><label>Tarix</label><input id="md" type="date"></div><div class="field"><label>Vaxt</label><input id="mt" type="time"></div><div class="field"><label>Status</label><select id="ms"><option>Planlaşdırılıb</option><option>Davam edir</option><option>Başa çatıb</option></select></div><div class="actions"><button class="btn green" onclick="addMatch()">Matçı yadda saxla</button></div>`)}
+async function addMatch(){if(!requireAdmin())return;let h=mh.value.trim(),a=ma.value.trim();if(!h||!a)return alert('Hər iki komandanı daxil edin');data.matches.push({id:Date.now(),h,a,scoreH:0,scoreA:0,date:md.value,time:mt.value,status:ms.value});await save();closeModal();notify('Matç əlavə edildi.')}
+function openLeague(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni liqa</h2><div class="field"><label>Ad</label><input id="ln"></div><div class="field"><label>Mövsüm</label><input id="ls" placeholder="2026/27"></div><div class="actions"><button class="btn green" onclick="addLeague()">Yarat</button></div>`)}
+async function addLeague(){if(!requireAdmin())return;let n=ln.value.trim();if(!n)return alert('Adı daxil edin');data.leagues.push({id:Date.now(),name:n,season:ls.value||'2026/27',teams:[]});await save();closeModal();notify('Liqa yaradıldı.')}
+function openTeam(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni komanda</h2><div class="field"><label>Ad</label><input id="tn"></div><div class="field"><label>Loqo / emoji</label><input id="te" placeholder="⚽"></div><div class="actions"><button class="btn green" onclick="addTeam()">Yarat</button></div>`)}
+async function addTeam(){if(!requireAdmin())return;let n=tn.value.trim();if(!n)return alert('Adı daxil edin');data.teams.push({id:Date.now(),name:n,logo:te.value||'⚽'});await save();closeModal();notify('Komanda yaradıldı.')}
+function openPlayer(){let opts=data.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni oyunçu</h2><div class="field"><label>Ad</label><input id="pn"></div><div class="field"><label>Nömrə</label><input id="pnum" type="number"></div><div class="field"><label>Komanda</label><select id="pt"><option value="">Komandasız</option>${opts}</select></div><div class="actions"><button class="btn green" onclick="addPlayer()">Yarat</button></div>`)}
+async function addPlayer(){if(!requireAdmin())return;let n=pn.value.trim();if(!n)return alert('Adı daxil edin');data.players.push({id:Date.now(),name:n,num:pnum.value||'',team:pt.value,goals:0,assists:0,saves:0,points:0});await save();closeModal();notify('Oyunçu əlavə edildi.')}
+function editPlayer(id){if(!requireAdmin())return;let p=data.players.find(x=>String(x.id)===String(id));if(!p)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>${esc(p.name)}</h2><div class="field"><label>Qollar</label><input id="eg" type="number" value="${p.goals}"></div><div class="field"><label>Assistlər</label><input id="ea" type="number" value="${p.assists}"></div><div class="field"><label>Qurtarışlar</label><input id="es" type="number" value="${p.saves}"></div><div class="field"><label>Xallar</label><input id="ep" type="number" value="${p.points}"></div><div class="actions"><button class="btn green" onclick="savePlayer(${id})">Yadda saxla</button><button class="btn light" onclick="deletePlayer(${id})">Sil</button></div>`)}
+async function savePlayer(id){if(!requireAdmin())return;let p=data.players.find(x=>String(x.id)===String(id));p.goals=+eg.value||0;p.assists=+ea.value||0;p.saves=+es.value||0;p.points=+ep.value||0;await save();closeModal();notify('Statistika yeniləndi.')}
+async function deletePlayer(id){if(!requireAdmin())return;if(confirm('Oyunçunu silmək istəyirsiniz?')){data.players=data.players.filter(p=>String(p.id)!==String(id));await save();closeModal();notify('Oyunçu silindi.')}}
+function standings(){const map={};data.teams.forEach(t=>map[t.name]={name:t.name,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});data.matches.forEach(m=>{if(!map[m.h]||!map[m.a]||m.status!=='Başa çatıb')return;const h=+m.scoreH||0,a=+m.scoreA||0,H=map[m.h],A=map[m.a];H.p++;A.p++;H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;if(h>a){H.w++;A.l++;H.pts+=3}else if(h<a){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++}});return Object.values(map).map(r=>(r.gd=r.gf-r.ga,r)).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf)}
+function renderMatch(m){return `<div class="card"><div class="match"><div><div class="logo">⚽</div><div class="team">${esc(m.h)}</div></div><div><div class="status">${esc(m.status)}</div><div class="score">${m.scoreH} : ${m.scoreA}</div><div class="muted">${m.date||''} ${m.time||''}</div></div><div><div class="logo">⚽</div><div class="team">${esc(m.a)}</div></div></div>${isAdmin?`<div class="actions"><button class="small-btn" onclick="editMatch(${m.id})">✏️ Dəyiş</button><button class="small-btn red" onclick="deleteMatch(${m.id})">🗑️ Sil</button></div>`:''}</div>`}
+function renderAll(){['addMatchBtn','addLeagueBtn','addTeamBtn','addPlayerBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isAdmin?'inline-block':'none'});const ap=document.getElementById('adminPanel');if(ap)ap.innerHTML=isAdmin?`<div class="admin-box"><div class="admin-ok">✅ Admin rejimi aktivdir</div><p>Matç, liqa, komanda və oyunçu məlumatlarını dəyişə bilərsiniz.</p><button class="btn light" onclick="adminLogout()">🔓 Çıxış</button></div>`:`<div class="admin-box"><div class="admin-no">🔒 Admin girişi tələb olunur</div><p>Məlumatları yalnız admin dəyişə bilər.</p><div class="field"><label>Admin şifrəsi</label><input id="adminPass" type="password" placeholder="Şifrə"></div><button class="btn green" onclick="adminLogin()">🔐 Daxil ol</button></div>`;let matches=data.matches.slice().reverse();homeMatches.innerHTML=matches.length?matches.slice(0,3).map(renderMatch).join(''):`<div class="card empty">Hələ matç yoxdur.</div>`;matchesList.innerHTML=matches.length?matches.map(renderMatch).join(''):`<div class="card empty">İlk matçı əlavə et.</div>`;leaguesList.innerHTML=data.leagues.length?data.leagues.map(l=>{const rows=standings();return `<div class="card"><b>🏆 ${esc(l.name)}</b><div class="muted">Mövsüm ${esc(l.season)}</div><table class="table" style="margin-top:10px"><tr><th># Komanda</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Xal</th></tr>${rows.map((r,i)=>`<tr><td><span class="rank">${i+1}</span> ${esc(r.name)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd>0?'+':''}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`}).join(''):`<div class="card empty">Hələ liqa yoxdur.</div>`;teamsList.innerHTML=data.teams.map(t=>{let ps=data.players.filter(p=>String(p.team)===String(t.id));return `<div class="card"><div class="player"><div class="logo" style="margin:0">${esc(t.logo||'⚽')}</div><div class="player-info"><b>${esc(t.name)}</b><div class="muted">${ps.length} oyunçu</div></div></div>${isAdmin?`<div class="actions"><button class="small-btn" onclick="editTeam(${t.id})">✏️ Dəyiş</button></div>`:''}</div>`}).join('');playersList.innerHTML=data.players.map(p=>{let t=data.teams.find(x=>String(x.id)===String(p.team));return `<div class="card"><div class="player"><div class="avatar">${esc((p.num||p.name[0]).toString())}</div><div class="player-info"><b>${esc(p.name)}</b><div class="muted">${t?esc(t.name):'Komandasız'}</div><div class="stats"><span>⚽ ${p.goals} qol</span><span>🅰️ ${p.assists} assist</span><span>🧤 ${p.saves} qurtarış</span><span>⭐ ${p.points} xal</span></div></div>${isAdmin?`<button class="btn light" onclick="editPlayer(${p.id})">Dəyiş</button>`:''}</div></div>`}).join('')}
+loadNotifications();
+load();
+</script>
+</body>
+</html>
