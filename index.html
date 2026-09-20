@@ -82,101 +82,38 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ari
 </div>
 
 <script>
-const key='aliscore_v1';
-let data=JSON.parse(localStorage.getItem(key)||'{"matches":[],"leagues":[],"teams":[],"players":[]}');
-let isAdmin=sessionStorage.getItem('aliscore_admin')==='1';
-const ADMIN_PASSWORD='AliScore2026';
-const seedTeams=[
- {name:'Xirdalan Wolves',logo:'🐺',players:['Ali','Emin','Raul','Huseyin (2 blok)']},
- {name:'MSN FK',logo:'⚽',players:['Fuad','Murad','Minə','Şamxal']},
- {name:'Xirdalan United',logo:'⚽',players:['Amil','Elmir','Huseyin','İsa','Ümüd']},
- {name:'Lotu Pişiklər',logo:'🐱',players:['Kamran','Ayxan','Ramil']},
- {name:'Neweli FK',logo:'⚽',players:['Tofik','Arda','Emil','Vəli']}
-];
-const seedMatches=[
- ['MSN FK','Xirdalan United',3,0],['Lotu Pişiklər','MSN FK',4,1],['Xirdalan Wolves','Lotu Pişiklər',5,5],['Neweli FK','MSN FK',10,8],
- ['Xirdalan United','Xirdalan Wolves',3,0],['Xirdalan United','Lotu Pişiklər',1,0],['MSN FK','Xirdalan Wolves',9,9],['Neweli FK','Xirdalan United',3,5]
-];
-function seedAliScore(){
- const teamByName={};
- seedTeams.forEach(st=>{
-  let t=data.teams.find(x=>x.name===st.name);
-  if(!t){t={id:Date.now()+Math.random(),name:st.name,logo:st.logo};data.teams.push(t)}
-  teamByName[st.name]=t;
-  st.players.forEach(n=>{if(!data.players.some(p=>p.name===n&&String(p.team)===String(t.id))) data.players.push({id:Date.now()+Math.random(),name:n,num:'',team:t.id,goals:0,assists:0,saves:0,points:0})});
- });
- seedMatches.forEach(([h,a,sh,sa])=>{if(!data.matches.some(m=>m.h===h&&m.a===a&&m.scoreH===sh&&m.scoreA===sa)) data.matches.push({id:Date.now()+Math.random(),h,a,scoreH:sh,scoreA:sa,date:'',time:'',status:'Başa çatıb'})});
- if(!data.leagues.some(l=>l.name==='Mehle League')) data.leagues.push({id:Date.now()+Math.random(),name:'Mehle League',season:'2026/27',teams:Object.values(teamByName).map(t=>t.id)});
- localStorage.setItem(key,JSON.stringify(data));
-}
-seedAliScore();
-function save(){localStorage.setItem(key,JSON.stringify(data));renderAll()}
+let data={matches:[],leagues:[],teams:[],players:[]};
+let isAdmin=false;
+async function api(url,opts={}){const r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts});if(!r.ok){let e={};try{e=await r.json()}catch{};throw new Error(e.error||'Xəta');}return r.json()}
+async function load(){const r=await api('/api/data');data=r.data;isAdmin=r.isAdmin;renderAll()}
+async function save(){try{const r=await api('/api/data',{method:'PUT',body:JSON.stringify(data)});data=r.data;renderAll()}catch(e){alert('Yadda saxlamaq mümkün olmadı: '+e.message)}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function showTab(id,btn){document.querySelectorAll('main section').forEach(s=>s.hidden=s.id!==id);document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll()}
 function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show')}
 function closeModal(){document.getElementById('modalBg').classList.remove('show')}
-
-function requireAdmin(){if(!isAdmin){alert('Bu əməliyyat yalnız admin üçündür.');showTab('admin',document.querySelectorAll('.nav button')[5]);return false}return true}
-function adminLogin(){const pass=document.getElementById('adminPass').value;if(pass===ADMIN_PASSWORD){isAdmin=true;sessionStorage.setItem('aliscore_admin','1');renderAll();alert('Admin rejimi aktiv edildi.')}else alert('Şifrə yanlışdır.')}
-function adminLogout(){isAdmin=false;sessionStorage.removeItem('aliscore_admin');renderAll()}
-function openAdmin(){if(isAdmin){renderAll();return} }
-function editMatch(id){if(!requireAdmin())return;const m=data.matches.find(x=>x.id===id);if(!m)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matçı dəyiş</h2><div class="field"><label>Ev sahibi</label><input id="emh" value="${esc(m.h)}"></div><div class="field"><label>Qonaq</label><input id="ema" value="${esc(m.a)}"></div><div class="field"><label>Ev sahibinin qolu</label><input id="esh" type="number" min="0" value="${m.scoreH}"></div><div class="field"><label>Qonağın qolu</label><input id="esa" type="number" min="0" value="${m.scoreA}"></div><div class="field"><label>Status</label><select id="ems"><option ${m.status==='Planlaşdırılıb'?'selected':''}>Planlaşdırılıb</option><option ${m.status==='Davam edir'?'selected':''}>Davam edir</option><option ${m.status==='Başa çatıb'?'selected':''}>Başa çatıb</option></select></div><div class="actions"><button class="btn green" onclick="saveMatch(${id})">Yadda saxla</button><button class="btn light" onclick="deleteMatch(${id})">Sil</button></div>`)}
-function saveMatch(id){const m=data.matches.find(x=>x.id===id);if(!m)return;m.h=emh.value.trim();m.a=ema.value.trim();m.scoreH=+esh.value||0;m.scoreA=+esa.value||0;m.status=ems.value;save();closeModal()}
-function deleteMatch(id){if(confirm('Bu matçı silmək istəyirsiniz?')){data.matches=data.matches.filter(x=>x.id!==id);save();closeModal()}}
-function editTeam(id){if(!requireAdmin())return;const t=data.teams.find(x=>x.id===id);if(!t)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Komandanı dəyiş</h2><div class="field"><label>Ad</label><input id="etn" value="${esc(t.name)}"></div><div class="field"><label>Loqo / emoji</label><input id="ete" value="${esc(t.logo||'⚽')}"></div><div class="actions"><button class="btn green" onclick="saveTeam(${id})">Yadda saxla</button></div>`)}
-function saveTeam(id){const t=data.teams.find(x=>x.id===id);if(!t)return;t.name=etn.value.trim()||t.name;t.logo=ete.value||'⚽';save();closeModal()}
-function openMatch(){
-openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matç əlavə et</h2>
-<div class="field"><label>Ev sahibi</label><input id="mh" placeholder="Məsələn, Ali FC"></div>
-<div class="field"><label>Qonaq</label><input id="ma" placeholder="Məsələn, Baku FC"></div>
-<div class="field"><label>Tarix</label><input id="md" type="date"></div>
-<div class="field"><label>Vaxt</label><input id="mt" type="time"></div>
-<div class="field"><label>Status</label><select id="ms"><option>Planlaşdırılıb</option><option>Davam edir</option><option>Başa çatıb</option></select></div>
-<div class="actions"><button class="btn green" onclick="addMatch()">Matçı yadda saxla</button></div>`);
-}
-function addMatch(){if(!requireAdmin())return;let h=mh.value.trim(),a=ma.value.trim();if(!h||!a)return alert('Hər iki komandanı daxil edin');data.matches.push({id:Date.now(),h,a,scoreH:0,scoreA:0,date:md.value,time:mt.value,status:ms.value});save();closeModal()}
-function openLeague(){
-openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni liqa</h2><div class="field"><label>Ad</label><input id="ln" placeholder="AliScore Liqası"></div><div class="field"><label>Mövsüm</label><input id="ls" placeholder="2026"></div><div class="actions"><button class="btn green" onclick="addLeague()">Yarat</button></div>`);
-}
-function addLeague(){if(!requireAdmin())return;let n=ln.value.trim();if(!n)return alert('Adı daxil edin');data.leagues.push({id:Date.now(),name:n,season:ls.value||'2026',teams:[]});save();closeModal()}
-function openTeam(){
-openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni komanda</h2><div class="field"><label>Ad</label><input id="tn" placeholder="Ad команды"></div><div class="field"><label>Loqo / emoji</label><input id="te" placeholder="⚽"></div><div class="actions"><button class="btn green" onclick="addTeam()">Yarat</button></div>`);
-}
-function addTeam(){if(!requireAdmin())return;let n=tn.value.trim();if(!n)return alert('Adı daxil edin');data.teams.push({id:Date.now(),name:n,logo:te.value||'⚽'});save();closeModal()}
-function openPlayer(){
-let opts=data.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
-openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni oyunçu</h2><div class="field"><label>Ad</label><input id="pn" placeholder="Ad игрока"></div><div class="field"><label>Nömrə</label><input id="pnum" type="number" placeholder="10"></div><div class="field"><label>Komanda</label><select id="pt"><option value="">Komandasız</option>${opts}</select></div><div class="actions"><button class="btn green" onclick="addPlayer()">Yarat</button></div>`);
-}
-function addPlayer(){if(!requireAdmin())return;let n=pn.value.trim();if(!n)return alert('Adı daxil edin');data.players.push({id:Date.now(),name:n,num:pnum.value||'',team:pt.value,goals:0,assists:0,saves:0,points:0});save();closeModal()}
-function editPlayer(id){
-let p=data.players.find(x=>x.id===id);if(!p)return;
-openModal(`<button class="close" onclick="closeModal()">✕</button><h2>${esc(p.name)}</h2>
-<div class="field"><label>Qollar</label><input id="eg" type="number" value="${p.goals}"></div>
-<div class="field"><label>Assistlər</label><input id="ea" type="number" value="${p.assists}"></div>
-<div class="field"><label>Qurtarışlar</label><input id="es" type="number" value="${p.saves}"></div>
-<div class="field"><label>Xallar</label><input id="ep" type="number" value="${p.points}"></div>
-<div class="actions"><button class="btn green" onclick="savePlayer(${id})">Yadda saxla</button><button class="btn light" onclick="deletePlayer(${id})">Sil</button></div>`);
-}
-function savePlayer(id){if(!requireAdmin())return;let p=data.players.find(x=>x.id===id);p.goals=+eg.value||0;p.assists=+ea.value||0;p.saves=+es.value||0;p.points=+ep.value||0;save();closeModal()}
-function deletePlayer(id){if(!requireAdmin())return;if(confirm('Sil игрока?')){data.players=data.players.filter(p=>p.id!==id);save();closeModal()}}
-function standings(){
- const map={}; data.teams.forEach(t=>map[t.name]={name:t.name,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
- data.matches.forEach(m=>{if(!map[m.h]||!map[m.a])return; const h=+m.scoreH||0,a=+m.scoreA||0;let H=map[m.h],A=map[m.a];H.p++;A.p++;H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;if(h>a){H.w++;A.l++;H.pts+=3}else if(h<a){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++}});
- return Object.values(map).map(r=>(r.gd=r.gf-r.ga,r)).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
-}
+function requireAdmin(){if(!isAdmin){alert('Bu əməliyyat yalnız admin üçündür.');return false}return true}
+async function adminLogin(){try{await api('/api/login',{method:'POST',body:JSON.stringify({password:document.getElementById('adminPass').value})});isAdmin=true;renderAll();alert('Admin rejimi aktiv edildi.')}catch(e){alert('Şifrə yanlışdır.')}}
+async function adminLogout(){await api('/api/logout',{method:'POST'});isAdmin=false;renderAll()}
+function editMatch(id){if(!requireAdmin())return;const m=data.matches.find(x=>String(x.id)===String(id));if(!m)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matçı dəyiş</h2><div class="field"><label>Ev sahibi</label><input id="emh" value="${esc(m.h)}"></div><div class="field"><label>Qonaq</label><input id="ema" value="${esc(m.a)}"></div><div class="field"><label>Ev sahibinin qolu</label><input id="esh" type="number" min="0" value="${m.scoreH}"></div><div class="field"><label>Qonağın qolu</label><input id="esa" type="number" min="0" value="${m.scoreA}"></div><div class="field"><label>Status</label><select id="ems"><option ${m.status==='Planlaşdırılıb'?'selected':''}>Planlaşdırılıb</option><option ${m.status==='Davam edir'?'selected':''}>Davam edir</option><option ${m.status==='Başa çatıb'?'selected':''}>Başa çatıb</option></select></div><div class="actions"><button class="btn green" onclick="saveMatch(${id})">Yadda saxla</button><button class="btn light" onclick="deleteMatch(${id})">Sil</button></div>`)}
+async function saveMatch(id){const m=data.matches.find(x=>String(x.id)===String(id));if(!m)return;m.h=emh.value.trim();m.a=ema.value.trim();m.scoreH=+esh.value||0;m.scoreA=+esa.value||0;m.status=ems.value;await save();closeModal()}
+async function deleteMatch(id){if(!requireAdmin())return;if(confirm('Bu matçı silmək istəyirsiniz?')){data.matches=data.matches.filter(x=>String(x.id)!==String(id));await save();closeModal()}}
+function editTeam(id){if(!requireAdmin())return;const t=data.teams.find(x=>String(x.id)===String(id));if(!t)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Komandanı dəyiş</h2><div class="field"><label>Ad</label><input id="etn" value="${esc(t.name)}"></div><div class="field"><label>Loqo / emoji</label><input id="ete" value="${esc(t.logo||'⚽')}"></div><div class="actions"><button class="btn green" onclick="saveTeam(${id})">Yadda saxla</button></div>`)}
+async function saveTeam(id){const t=data.teams.find(x=>String(x.id)===String(id));if(!t)return;t.name=etn.value.trim()||t.name;t.logo=ete.value||'⚽';await save();closeModal()}
+function openMatch(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Matç əlavə et</h2><div class="field"><label>Ev sahibi</label><input id="mh"></div><div class="field"><label>Qonaq</label><input id="ma"></div><div class="field"><label>Tarix</label><input id="md" type="date"></div><div class="field"><label>Vaxt</label><input id="mt" type="time"></div><div class="field"><label>Status</label><select id="ms"><option>Planlaşdırılıb</option><option>Davam edir</option><option>Başa çatıb</option></select></div><div class="actions"><button class="btn green" onclick="addMatch()">Matçı yadda saxla</button></div>`)}
+async function addMatch(){if(!requireAdmin())return;let h=mh.value.trim(),a=ma.value.trim();if(!h||!a)return alert('Hər iki komandanı daxil edin');data.matches.push({id:Date.now(),h,a,scoreH:0,scoreA:0,date:md.value,time:mt.value,status:ms.value});await save();closeModal()}
+function openLeague(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni liqa</h2><div class="field"><label>Ad</label><input id="ln"></div><div class="field"><label>Mövsüm</label><input id="ls" placeholder="2026/27"></div><div class="actions"><button class="btn green" onclick="addLeague()">Yarat</button></div>`)}
+async function addLeague(){if(!requireAdmin())return;let n=ln.value.trim();if(!n)return alert('Adı daxil edin');data.leagues.push({id:Date.now(),name:n,season:ls.value||'2026/27',teams:[]});await save();closeModal()}
+function openTeam(){openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni komanda</h2><div class="field"><label>Ad</label><input id="tn"></div><div class="field"><label>Loqo / emoji</label><input id="te" placeholder="⚽"></div><div class="actions"><button class="btn green" onclick="addTeam()">Yarat</button></div>`)}
+async function addTeam(){if(!requireAdmin())return;let n=tn.value.trim();if(!n)return alert('Adı daxil edin');data.teams.push({id:Date.now(),name:n,logo:te.value||'⚽'});await save();closeModal()}
+function openPlayer(){let opts=data.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');openModal(`<button class="close" onclick="closeModal()">✕</button><h2>Yeni oyunçu</h2><div class="field"><label>Ad</label><input id="pn"></div><div class="field"><label>Nömrə</label><input id="pnum" type="number"></div><div class="field"><label>Komanda</label><select id="pt"><option value="">Komandasız</option>${opts}</select></div><div class="actions"><button class="btn green" onclick="addPlayer()">Yarat</button></div>`)}
+async function addPlayer(){if(!requireAdmin())return;let n=pn.value.trim();if(!n)return alert('Adı daxil edin');data.players.push({id:Date.now(),name:n,num:pnum.value||'',team:pt.value,goals:0,assists:0,saves:0,points:0});await save();closeModal()}
+function editPlayer(id){if(!requireAdmin())return;let p=data.players.find(x=>String(x.id)===String(id));if(!p)return;openModal(`<button class="close" onclick="closeModal()">✕</button><h2>${esc(p.name)}</h2><div class="field"><label>Qollar</label><input id="eg" type="number" value="${p.goals}"></div><div class="field"><label>Assistlər</label><input id="ea" type="number" value="${p.assists}"></div><div class="field"><label>Qurtarışlar</label><input id="es" type="number" value="${p.saves}"></div><div class="field"><label>Xallar</label><input id="ep" type="number" value="${p.points}"></div><div class="actions"><button class="btn green" onclick="savePlayer(${id})">Yadda saxla</button><button class="btn light" onclick="deletePlayer(${id})">Sil</button></div>`)}
+async function savePlayer(id){if(!requireAdmin())return;let p=data.players.find(x=>String(x.id)===String(id));p.goals=+eg.value||0;p.assists=+ea.value||0;p.saves=+es.value||0;p.points=+ep.value||0;await save();closeModal()}
+async function deletePlayer(id){if(!requireAdmin())return;if(confirm('Oyunçunu silmək istəyirsiniz?')){data.players=data.players.filter(p=>String(p.id)!==String(id));await save();closeModal()}}
+function standings(){const map={};data.teams.forEach(t=>map[t.name]={name:t.name,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});data.matches.forEach(m=>{if(!map[m.h]||!map[m.a]||m.status!=='Başa çatıb')return;const h=+m.scoreH||0,a=+m.scoreA||0,H=map[m.h],A=map[m.a];H.p++;A.p++;H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;if(h>a){H.w++;A.l++;H.pts+=3}else if(h<a){A.w++;H.l++;A.pts+=3}else{H.d++;A.d++;H.pts++;A.pts++}});return Object.values(map).map(r=>(r.gd=r.gf-r.ga,r)).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf)}
 function renderMatch(m){return `<div class="card"><div class="match"><div><div class="logo">⚽</div><div class="team">${esc(m.h)}</div></div><div><div class="status">${esc(m.status)}</div><div class="score">${m.scoreH} : ${m.scoreA}</div><div class="muted">${m.date||''} ${m.time||''}</div></div><div><div class="logo">⚽</div><div class="team">${esc(m.a)}</div></div></div>${isAdmin?`<div class="actions"><button class="small-btn" onclick="editMatch(${m.id})">✏️ Dəyiş</button><button class="small-btn red" onclick="deleteMatch(${m.id})">🗑️ Sil</button></div>`:''}</div>`}
-function renderAll(){
-  ['addMatchBtn','addLeagueBtn','addTeamBtn','addPlayerBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isAdmin?'inline-block':'none'});
-  const ap=document.getElementById('adminPanel');
-  if(ap) ap.innerHTML=isAdmin?`<div class="admin-box"><div class="admin-ok">✅ Admin rejimi aktivdir</div><p>İndi matç, liqa, komanda və oyunçu əlavə edə, həmçinin mövcud məlumatları dəyişə və silə bilərsiniz.</p><div class="admin-actions"><button class="btn light" onclick="adminLogout()">🔓 Çıxış</button></div></div>`:`<div class="admin-box"><div class="admin-no">🔒 Admin girişi tələb olunur</div><p>AliScore-da məlumatları yalnız admin dəyişə və əlavə edə bilər.</p><div class="field"><label>Admin şifrəsi</label><input id="adminPass" type="password" placeholder="Şifrəni daxil edin"></div><button class="btn green" onclick="adminLogin()">🔐 Daxil ol</button><p class="muted" style="margin-top:10px">İlkin şifrə: <b>AliScore2026</b></p></div>`;
-let matches=data.matches.slice().reverse();
-homeMatches.innerHTML=matches.length?matches.slice(0,3).map(renderMatch).join(''):`<div class="card empty">Hələ matç yoxdur.<br>Создай первый матч в разделе «Matçlar».</div>`;
-matchesList.innerHTML=matches.length?matches.map(renderMatch).join(''):`<div class="card empty">İlk matçı əlavə et.</div>`;
-leaguesList.innerHTML=data.leagues.length?data.leagues.map(l=>{const rows=standings();return `<div class="card"><b>🏆 ${esc(l.name)}</b><div class="muted">Mövsüm ${esc(l.season)}</div><table class="table" style="margin-top:10px"><tr><th># Komanda</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>${rows.map((r,i)=>`<tr><td><span class="rank">${i+1}</span> ${esc(r.name)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd>0?'+':''}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`}).join(''):`<div class="card empty">Hələ liqa yoxdur.</div>`;
-teamsList.innerHTML=data.teams.length?data.teams.map(t=>{let ps=data.players.filter(p=>String(p.team)===String(t.id));return `<div class="card"><div class="player"><div class="logo" style="margin:0">${esc(t.logo||'⚽')}</div><div class="player-info"><b>${esc(t.name)}</b><div class="muted">${ps.length} oyunçu</div></div></div>${isAdmin?`<div class="actions"><button class="small-btn" onclick="editTeam(${t.id})">✏️ Dəyiş</button></div>`:''}</div>`}).join(''):`<div class="card empty">Hələ komanda yoxdur.</div>`;
-playersList.innerHTML=data.players.length?data.players.map(p=>{let t=data.teams.find(x=>String(x.id)===String(p.team));return `<div class="card"><div class="player"><div class="avatar">${esc((p.num||p.name[0]).toString())}</div><div class="player-info"><b>${esc(p.name)}</b><div class="muted">${t?esc(t.name):'Komandasız'}</div><div class="stats"><span>⚽ ${p.goals} qol</span><span>🅰️ ${p.assists} assist</span><span>🧤 ${p.saves} qurtarış</span><span>⭐ ${p.points} xal</span></div></div>${isAdmin?`<button class="btn light" onclick="editPlayer(${p.id})">Dəyiş</button>`:''}</div></div>`}).join(''):`<div class="card empty">Hələ oyunçu yoxdur.</div>`;
-}
-renderAll();
+function renderAll(){['addMatchBtn','addLeagueBtn','addTeamBtn','addPlayerBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isAdmin?'inline-block':'none'});const ap=document.getElementById('adminPanel');if(ap)ap.innerHTML=isAdmin?`<div class="admin-box"><div class="admin-ok">✅ Admin rejimi aktivdir</div><p>Matç, liqa, komanda və oyunçu məlumatlarını dəyişə bilərsiniz.</p><button class="btn light" onclick="adminLogout()">🔓 Çıxış</button></div>`:`<div class="admin-box"><div class="admin-no">🔒 Admin girişi tələb olunur</div><p>Məlumatları yalnız admin dəyişə bilər.</p><div class="field"><label>Admin şifrəsi</label><input id="adminPass" type="password" placeholder="Şifrə"></div><button class="btn green" onclick="adminLogin()">🔐 Daxil ol</button></div>`;let matches=data.matches.slice().reverse();homeMatches.innerHTML=matches.length?matches.slice(0,3).map(renderMatch).join(''):`<div class="card empty">Hələ matç yoxdur.</div>`;matchesList.innerHTML=matches.length?matches.map(renderMatch).join(''):`<div class="card empty">İlk matçı əlavə et.</div>`;leaguesList.innerHTML=data.leagues.length?data.leagues.map(l=>{const rows=standings();return `<div class="card"><b>🏆 ${esc(l.name)}</b><div class="muted">Mövsüm ${esc(l.season)}</div><table class="table" style="margin-top:10px"><tr><th># Komanda</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Xal</th></tr>${rows.map((r,i)=>`<tr><td><span class="rank">${i+1}</span> ${esc(r.name)}</td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd>0?'+':''}${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`}).join(''):`<div class="card empty">Hələ liqa yoxdur.</div>`;teamsList.innerHTML=data.teams.map(t=>{let ps=data.players.filter(p=>String(p.team)===String(t.id));return `<div class="card"><div class="player"><div class="logo" style="margin:0">${esc(t.logo||'⚽')}</div><div class="player-info"><b>${esc(t.name)}</b><div class="muted">${ps.length} oyunçu</div></div></div>${isAdmin?`<div class="actions"><button class="small-btn" onclick="editTeam(${t.id})">✏️ Dəyiş</button></div>`:''}</div>`}).join('');playersList.innerHTML=data.players.map(p=>{let t=data.teams.find(x=>String(x.id)===String(p.team));return `<div class="card"><div class="player"><div class="avatar">${esc((p.num||p.name[0]).toString())}</div><div class="player-info"><b>${esc(p.name)}</b><div class="muted">${t?esc(t.name):'Komandasız'}</div><div class="stats"><span>⚽ ${p.goals} qol</span><span>🅰️ ${p.assists} assist</span><span>🧤 ${p.saves} qurtarış</span><span>⭐ ${p.points} xal</span></div></div>${isAdmin?`<button class="btn light" onclick="editPlayer(${p.id})">Dəyiş</button>`:''}</div></div>`}).join('')}
+load();
 </script>
 </body>
 </html>
