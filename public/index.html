@@ -45,6 +45,12 @@ font-weight:800
 color:#22c55e
 }
 
+.header-actions{
+display:flex;
+align-items:center;
+gap:10px
+}
+
 .nav{
 display:flex;
 gap:7px;
@@ -69,6 +75,175 @@ background:#16a34a
 .admin-nav{
 margin-left:auto;
 background:#7c3aed!important
+}
+
+/* =========================
+   NOTIFICATION BELL
+========================= */
+
+.notification-bell{
+position:relative;
+border:0;
+background:#172438;
+color:white;
+border-radius:10px;
+padding:9px 12px;
+font-size:20px;
+line-height:1;
+min-width:45px;
+height:42px
+}
+
+.notification-bell:hover{
+background:#263954
+}
+
+#notificationCount{
+position:absolute;
+top:-6px;
+right:-6px;
+min-width:19px;
+height:19px;
+padding:0 5px;
+border-radius:999px;
+background:#ef4444;
+color:white;
+font-size:11px;
+font-weight:800;
+display:none;
+align-items:center;
+justify-content:center;
+border:2px solid #07111f
+}
+
+.notification-panel{
+display:none;
+position:fixed;
+top:75px;
+right:20px;
+width:390px;
+max-width:calc(100vw - 25px);
+max-height:520px;
+background:white;
+color:#111827;
+border-radius:16px;
+box-shadow:0 15px 45px rgba(0,0,0,.25);
+z-index:9998;
+overflow:hidden
+}
+
+.notification-panel.open{
+display:block;
+animation:panelIn .18s ease
+}
+
+@keyframes panelIn{
+from{
+opacity:0;
+transform:translateY(-8px)
+}
+to{
+opacity:1;
+transform:translateY(0)
+}
+}
+
+.notification-panel-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+padding:15px;
+border-bottom:1px solid #e5e7eb;
+background:#fff
+}
+
+.notification-panel-title{
+font-size:18px;
+font-weight:800
+}
+
+.notification-panel-actions{
+display:flex;
+gap:5px
+}
+
+.notification-panel-actions button{
+border:0;
+background:#f3f4f6;
+color:#374151;
+border-radius:7px;
+padding:6px 8px;
+font-size:11px
+}
+
+.notification-panel-actions button:hover{
+background:#e5e7eb
+}
+
+#notificationHistory{
+max-height:440px;
+overflow-y:auto
+}
+
+.notification-history-item{
+display:flex;
+gap:11px;
+padding:14px 15px;
+border-bottom:1px solid #f0f0f0;
+cursor:pointer;
+transition:.15s
+}
+
+.notification-history-item:hover{
+background:#f9fafb
+}
+
+.notification-history-item.unread{
+background:#eff6ff
+}
+
+.notification-history-item.unread:hover{
+background:#dbeafe
+}
+
+.notification-history-icon{
+font-size:21px;
+width:27px;
+text-align:center;
+flex-shrink:0
+}
+
+.notification-history-content{
+flex:1;
+min-width:0
+}
+
+.notification-history-text{
+font-size:14px;
+font-weight:600;
+line-height:1.35
+}
+
+.notification-history-time{
+font-size:11px;
+color:#6b7280;
+margin-top:5px
+}
+
+.notification-unread-dot{
+width:8px;
+height:8px;
+background:#2563eb;
+border-radius:50%;
+margin-top:5px;
+flex-shrink:0
+}
+
+.notification-empty{
+padding:35px 20px;
+text-align:center;
+color:#6b7280
 }
 
 .container{
@@ -349,14 +524,13 @@ color:#6b7280;
 padding:30px 15px
 }
 
-
 /* =========================
-   NOTIFICATIONS
+   TOAST NOTIFICATIONS
 ========================= */
 
 #notifications{
 position:fixed;
-top:20px;
+top:80px;
 right:20px;
 z-index:9999;
 display:flex;
@@ -441,7 +615,6 @@ transform:translateX(40px)
 }
 }
 
-
 @media(max-width:800px){
 
 .team-grid,
@@ -515,9 +688,30 @@ margin-left:0
 }
 
 #notifications{
-top:10px;
+top:65px;
 right:10px;
 width:calc(100vw - 20px)
+}
+
+.notification-panel{
+top:65px;
+right:10px;
+width:calc(100vw - 20px)
+}
+
+.header-inner{
+gap:8px
+}
+
+.admin-status{
+font-size:11px;
+padding:6px 8px
+}
+
+.notification-bell{
+height:38px;
+min-width:40px;
+padding:7px 10px
 }
 
 }
@@ -526,9 +720,35 @@ width:calc(100vw - 20px)
 
 <body>
 
-<!-- NOTIFICATIONS -->
-
+<!-- TOAST NOTIFICATIONS -->
 <div id="notifications"></div>
+
+<!-- NOTIFICATION CENTER -->
+<div id="notificationPanel" class="notification-panel">
+
+<div class="notification-panel-header">
+
+<div class="notification-panel-title">
+🔔 Bildirişlər
+</div>
+
+<div class="notification-panel-actions">
+
+<button onclick="markAllNotificationsRead()">
+Hamısını oxu
+</button>
+
+<button onclick="clearNotifications()">
+Təmizlə
+</button>
+
+</div>
+
+</div>
+
+<div id="notificationHistory"></div>
+
+</div>
 
 
 <header class="header">
@@ -539,8 +759,26 @@ width:calc(100vw - 20px)
 Ali<span>Score</span>
 </div>
 
+<div class="header-actions">
+
+<button
+class="notification-bell"
+onclick="toggleNotificationPanel()"
+title="Bildirişlər"
+>
+
+🔔
+
+<span id="notificationCount">
+0
+</span>
+
+</button>
+
 <div id="adminStatus" class="admin-status">
 Admin deyil
+</div>
+
 </div>
 
 </div>
@@ -603,11 +841,11 @@ komandalar və oyunçu statistikaları.
 
 <p>5 komanda</p>
 
-<button class="primary"
-onclick="showPage('league')">
-
+<button
+class="primary"
+onclick="showPage('league')"
+>
 Turnir cədvəlinə bax
-
 </button>
 
 </div>
@@ -619,11 +857,11 @@ Turnir cədvəlinə bax
 
 <p>Bütün nəticələrə bax.</p>
 
-<button class="secondary"
-onclick="showPage('matches')">
-
+<button
+class="secondary"
+onclick="showPage('matches')"
+>
 Matçlara bax
-
 </button>
 
 </div>
@@ -742,9 +980,7 @@ class="purple"
 onclick="loginAdmin()"
 style="width:100%"
 >
-
 Daxil ol
-
 </button>
 
 <div id="loginMessage" class="message"></div>
@@ -868,14 +1104,11 @@ id="playerPhoto"
 accept="image/*"
 >
 
-
 <button
 class="primary"
 onclick="savePlayer()"
 >
-
 💾 Yadda saxla
-
 </button>
 
 <div id="saveMessage" class="message"></div>
@@ -889,7 +1122,6 @@ onclick="savePlayer()"
 
 <h3>➕ Yeni matç əlavə et</h3>
 
-
 <select id="matchHome">
 
 <option value="">
@@ -897,7 +1129,6 @@ Ev komandası
 </option>
 
 </select>
-
 
 <select id="matchAway">
 
@@ -944,9 +1175,7 @@ value="0"
 class="primary"
 onclick="addMatch()"
 >
-
 ➕ Matç əlavə et
-
 </button>
 
 <div id="matchMessage" class="message"></div>
@@ -979,791 +1208,73 @@ AliScore © 2026
 
 <script>
 
+/* =========================================================
+   NOTIFICATION CENTER
+========================================================= */
 
-/* =========================
-   NOTIFICATION SYSTEM
-========================= */
+const NOTIFICATION_STORAGE_KEY =
+"aliscore_notifications_v1";
 
-function notify(text,type="success",duration=3500){
+let notificationHistory = [];
 
-const container=document.getElementById("notifications");
 
-const notification=document.createElement("div");
+/* Load saved notifications */
 
-notification.className="notification "+type;
-
-let icon="✅";
-
-if(type==="error") icon="❌";
-if(type==="info") icon="ℹ️";
-if(type==="warning") icon="⚠️";
-
-notification.innerHTML=`
-
-<div class="notification-icon">
-${icon}
-</div>
-
-<div class="notification-text">
-${escapeHTML(text)}
-</div>
-
-<button class="notification-close">
-×
-</button>
-
-`;
-
-container.appendChild(notification);
-
-const close=notification.querySelector(".notification-close");
-
-close.onclick=()=>removeNotification(notification);
-
-setTimeout(()=>{
-removeNotification(notification);
-},duration);
-
-}
-
-
-function removeNotification(notification){
-
-if(!notification) return;
-
-if(notification.classList.contains("hide")) return;
-
-notification.classList.add("hide");
-
-setTimeout(()=>{
-notification.remove();
-},300);
-
-}
-
-
-/* =========================
-   DEFAULT DATA
-========================= */
-
-const DEFAULT_DATA={
-
-leagues:[
-{
-id:"mehle-league",
-name:"Mehle League"
-}
-],
-
-teams:[
-
-{
-id:"xirdalan-wolves",
-name:"Xirdalan Wolves",
-logo:"🐺",
-players:[
-"Ali",
-"Emin",
-"Raul",
-"Huseyin (2 blok)"
-]
-},
-
-{
-id:"msn-fk",
-name:"MSN FK",
-logo:"⚽",
-players:[
-"Fuad",
-"Murad",
-"Minə",
-"Şamxal"
-]
-},
-
-{
-id:"xirdalan-united",
-name:"Xirdalan United",
-logo:"🟢",
-players:[
-"Amil",
-"Elmir",
-"Huseyin",
-"İsa",
-"Ümüd"
-]
-},
-
-{
-id:"lotu-pisikler",
-name:"Lotu Pişiklər",
-logo:"🐱",
-players:[
-"Kamran",
-"Ayxan",
-"Ramil"
-]
-},
-
-{
-id:"neweli-fk",
-name:"Neweli FK",
-logo:"🔵",
-players:[
-"Tofik",
-"Arda",
-"Emil",
-"Vəli"
-]
-}
-
-],
-
-
-players:[
-
-["ali","Ali","Xirdalan Wolves"],
-["emin","Emin","Xirdalan Wolves"],
-["raul","Raul","Xirdalan Wolves"],
-["huseyin-2-blok","Huseyin (2 blok)","Xirdalan Wolves"],
-
-["fuad","Fuad","MSN FK"],
-["murad","Murad","MSN FK"],
-["mine","Minə","MSN FK"],
-["samxal","Şamxal","MSN FK"],
-
-["amil","Amil","Xirdalan United"],
-["elmir","Elmir","Xirdalan United"],
-["huseyin","Huseyin","Xirdalan United"],
-["isa","İsa","Xirdalan United"],
-["umud","Ümüd","Xirdalan United"],
-
-["kamran","Kamran","Lotu Pişiklər"],
-["ayxan","Ayxan","Lotu Pişiklər"],
-["ramil","Ramil","Lotu Pişiklər"],
-
-["tofik","Tofik","Neweli FK"],
-["arda","Arda","Neweli FK"],
-["emil","Emil","Neweli FK"],
-["veli","Vəli","Neweli FK"]
-
-].map(p=>({
-
-id:p[0],
-name:p[1],
-team:p[2],
-goals:0,
-assists:0,
-saves:0,
-points:0,
-photo:""
-
-})),
-
-
-matches:[
-
-{
-id:1,
-home:"MSN FK",
-away:"Xirdalan United",
-homeScore:3,
-awayScore:0
-},
-
-{
-id:2,
-home:"Lotu Pişiklər",
-away:"MSN FK",
-homeScore:4,
-awayScore:1
-},
-
-{
-id:3,
-home:"Xirdalan Wolves",
-away:"Lotu Pişiklər",
-homeScore:5,
-awayScore:5
-},
-
-{
-id:4,
-home:"Neweli FK",
-away:"MSN FK",
-homeScore:10,
-awayScore:8
-},
-
-{
-id:5,
-home:"Xirdalan United",
-away:"Xirdalan Wolves",
-homeScore:3,
-awayScore:0
-},
-
-{
-id:6,
-home:"Xirdalan United",
-away:"Lotu Pişiklər",
-homeScore:1,
-awayScore:0
-},
-
-{
-id:7,
-home:"MSN FK",
-away:"Xirdalan Wolves",
-homeScore:9,
-awayScore:9
-},
-
-{
-id:8,
-home:"Neweli FK",
-away:"Xirdalan United",
-homeScore:3,
-awayScore:5
-}
-
-]
-
-};
-
-
-let appData=DEFAULT_DATA;
-let isAdmin=false;
-
-
-/* =========================
-   NAVIGATION
-========================= */
-
-function showPage(page){
-
-document
-.querySelectorAll(".page")
-.forEach(p=>p.classList.remove("active"));
-
-const target=document.getElementById("page-"+page);
-
-if(target){
-target.classList.add("active");
-}
-
-document
-.querySelectorAll(".nav button")
-.forEach(b=>b.classList.remove("active"));
-
-const nav=document.getElementById("nav-"+page);
-
-if(nav){
-nav.classList.add("active");
-}
-
-window.scrollTo({
-top:0,
-behavior:"smooth"
-});
-
-}
-
-
-/* =========================
-   LOAD DATA
-========================= */
-
-async function loadData(){
+function loadNotifications(){
 
 try{
 
-const response=await fetch(
-"/api/data",
-{
-credentials:"include"
-}
+const saved =
+localStorage.getItem(
+NOTIFICATION_STORAGE_KEY
 );
 
-if(!response.ok){
-throw new Error("API error");
+if(saved){
+
+const parsed =
+JSON.parse(saved);
+
+if(Array.isArray(parsed)){
+notificationHistory = parsed;
 }
 
-const result=await response.json();
-
-const serverData=result.data;
-
-if(
-serverData &&
-Array.isArray(serverData.teams) &&
-serverData.teams.length>0 &&
-Array.isArray(serverData.players) &&
-serverData.players.length>0
-){
-
-appData=serverData;
-
-}else{
-
-appData=DEFAULT_DATA;
-
 }
-
-isAdmin=!!result.isAdmin;
-
-renderEverything();
-updateAdminUI();
 
 }catch(error){
 
-console.error(error);
-
-appData=DEFAULT_DATA;
-isAdmin=false;
-
-renderEverything();
-updateAdminUI();
-
-}
-
-}
-
-
-/* =========================
-   RENDER EVERYTHING
-========================= */
-
-function renderEverything(){
-
-renderMatches();
-renderLeague();
-renderTeams();
-renderPlayers();
-renderAdminPlayers();
-renderAdminTeams();
-renderAdminMatches();
-
-}
-
-
-/* =========================
-   MATCHES
-========================= */
-
-function renderMatches(){
-
-const c=document.getElementById("matchesList");
-
-if(!appData.matches.length){
-
-c.innerHTML=
-'<div class="empty">Hələ matç yoxdur.</div>';
-
-return;
-
-}
-
-c.innerHTML=appData.matches.map(m=>`
-
-<div class="match">
-
-<div class="team-side">
-${escapeHTML(m.home)}
-</div>
-
-<div class="score">
-${Number(m.homeScore)} : ${Number(m.awayScore)}
-</div>
-
-<div class="team-side away">
-${escapeHTML(m.away)}
-</div>
-
-</div>
-
-`).join("");
-
-}
-
-
-/* =========================
-   TABLE
-========================= */
-
-function calculateTable(){
-
-const table={};
-
-appData.teams.forEach(team=>{
-
-table[team.name]={
-team:team.name,
-p:0,
-w:0,
-d:0,
-l:0,
-gf:0,
-ga:0,
-gd:0,
-pts:0
-};
-
-});
-
-
-appData.matches.forEach(m=>{
-
-if(!table[m.home]||!table[m.away])return;
-
-const h=table[m.home];
-const a=table[m.away];
-
-const hs=Number(m.homeScore)||0;
-const as=Number(m.awayScore)||0;
-
-h.p++;
-a.p++;
-
-h.gf+=hs;
-h.ga+=as;
-
-a.gf+=as;
-a.ga+=hs;
-
-
-if(hs>as){
-
-h.w++;
-a.l++;
-h.pts+=3;
-
-}else if(hs<as){
-
-a.w++;
-h.l++;
-a.pts+=3;
-
-}else{
-
-h.d++;
-a.d++;
-h.pts++;
-a.pts++;
-
-}
-
-});
-
-
-Object.values(table).forEach(r=>{
-r.gd=r.gf-r.ga;
-});
-
-
-return Object.values(table).sort(
-(a,b)=>
-b.pts-a.pts||
-b.gd-a.gd||
-b.gf-a.gf
+console.error(
+"Notification storage error:",
+error
 );
 
+notificationHistory=[];
+
 }
 
-
-function renderLeague(){
-
-const tbody=document.getElementById("leagueTable");
-
-const table=calculateTable();
-
-tbody.innerHTML=table.map((r,i)=>`
-
-<tr>
-
-<td>
-<strong>${i+1}</strong>
-</td>
-
-<td class="team-cell">
-${escapeHTML(r.team)}
-</td>
-
-<td>${r.p}</td>
-<td>${r.w}</td>
-<td>${r.d}</td>
-<td>${r.l}</td>
-<td>${r.gf}</td>
-<td>${r.ga}</td>
-
-<td>
-${r.gd>0?"+":""}${r.gd}
-</td>
-
-<td>
-<strong>${r.pts}</strong>
-</td>
-
-</tr>
-
-`).join("");
+renderNotificationHistory();
 
 }
 
 
-/* =========================
-   TEAMS
-========================= */
+/* Save notifications */
 
-function renderTeams(){
-
-const c=document.getElementById("teamsList");
-
-c.innerHTML=appData.teams.map(team=>{
-
-const players=
-appData.players.filter(
-p=>p.team===team.name
-);
-
-return`
-
-<div class="team-card">
-
-<div class="team-logo">
-${team.logo||"⚽"}
-</div>
-
-<div class="team-name">
-${escapeHTML(team.name)}
-</div>
-
-<p>
-${players.length} oyunçu
-</p>
-
-${players.map(p=>`
-
-<div style="margin:7px 0">
-⚽ ${escapeHTML(p.name)}
-</div>
-
-`).join("")}
-
-</div>
-
-`;
-
-}).join("");
-
-}
-
-
-/* =========================
-   PLAYERS
-========================= */
-
-function renderPlayers(){
-
-const c=document.getElementById("playersList");
-
-c.innerHTML=appData.players.map(p=>{
-
-const photo=p.photo||"";
-
-return`
-
-<div class="player-card">
-
-${
-photo
-?
-`<img class="player-photo" src="${photo}" alt="">`
-:
-`<div class="player-placeholder">⚽</div>`
-}
-
-<div class="player-name">
-${escapeHTML(p.name)}
-</div>
-
-<div class="player-team">
-${escapeHTML(p.team)}
-</div>
-
-<div class="stats">
-
-<div class="stat">
-<strong>${Number(p.goals)||0}</strong>
-<small>Qol</small>
-</div>
-
-<div class="stat">
-<strong>${Number(p.assists)||0}</strong>
-<small>Assist</small>
-</div>
-
-<div class="stat">
-<strong>${Number(p.saves)||0}</strong>
-<small>Save</small>
-</div>
-
-<div class="stat">
-<strong>${Number(p.points)||0}</strong>
-<small>Xal</small>
-</div>
-
-</div>
-
-</div>
-
-`;
-
-}).join("");
-
-}
-
-
-/* =========================
-   ADMIN UI
-========================= */
-
-function updateAdminUI(){
-
-const status=
-document.getElementById("adminStatus");
-
-const login=
-document.getElementById("loginBox");
-
-const panel=
-document.getElementById("adminPanel");
-
-
-if(isAdmin){
-
-status.textContent="✓ Admin";
-status.classList.add("logged");
-
-login.style.display="none";
-panel.classList.add("visible");
-
-}else{
-
-status.textContent="Admin deyil";
-status.classList.remove("logged");
-
-login.style.display="block";
-panel.classList.remove("visible");
-
-}
-
-}
-
-
-/* =========================
-   LOGIN
-========================= */
-
-async function loginAdmin(){
-
-const password=
-document.getElementById("adminPassword").value.trim();
-
-const message=
-document.getElementById("loginMessage");
-
-
-if(!password){
-
-message.className="message error";
-message.textContent="Şifrəni daxil et.";
-
-notify(
-"Şifrəni daxil et.",
-"warning"
-);
-
-return;
-
-}
-
+function saveNotificationHistory(){
 
 try{
 
-const response=await fetch(
-"/api/login",
-{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-credentials:"include",
-body:JSON.stringify({
-password:password
-})
-}
+notificationHistory =
+notificationHistory.slice(0,50);
+
+localStorage.setItem(
+NOTIFICATION_STORAGE_KEY,
+JSON.stringify(notificationHistory)
 );
 
+}catch(error){
 
-let result={};
-
-try{
-result=await response.json();
-}catch(e){}
-
-
-if(!response.ok){
-
-message.className="message error";
-
-message.textContent=
-result.error||"Yanlış şifrə.";
-
-notify(
-result.error||"Yanlış şifrə.",
-"error"
-);
-
-return;
-
-}
-
-
-isAdmin=true;
-
-message.className="message success";
-message.textContent="Uğurla daxil oldun.";
-
-document.getElementById(
-"adminPassword"
-).value="";
-
-
-updateAdminUI();
-
-renderAdminPlayers();
-renderAdminTeams();
-renderAdminMatches();
-
-
-notify(
-"Admin panelinə uğurla daxil oldun.",
-"success"
-);
-
-
-}catch(e){
-
-console.error(e);
-
-message.className="message error";
-
-message.textContent=
-"Serverlə əlaqə yoxdur.";
-
-notify(
-"Serverlə əlaqə yoxdur.",
-"error"
+console.error(
+"Notification save error:",
+error
 );
 
 }
@@ -1771,726 +1282,199 @@ notify(
 }
 
 
-/* =========================
-   LOGOUT
-========================= */
+/* Get notification icon */
 
-async function logoutAdmin(){
+function getNotificationIcon(type){
 
-try{
+if(type==="error") return "❌";
+if(type==="warning") return "⚠️";
+if(type==="info") return "ℹ️";
 
-await fetch(
-"/api/logout",
-{
-method:"POST",
-credentials:"include"
-}
-);
-
-}catch(e){}
-
-isAdmin=false;
-
-updateAdminUI();
-
-showPage("home");
-
-notify(
-"Admin hesabından çıxış edildi.",
-"info"
-);
+return "✅";
 
 }
 
 
-/* =========================
-   ADMIN PLAYERS
-========================= */
+/* Add notification to history */
 
-function renderAdminPlayers(){
-
-const select=
-document.getElementById("playerSelect");
-
-if(!select)return;
-
-select.innerHTML=
-'<option value="">Oyunçu seç...</option>';
-
-appData.players.forEach(p=>{
-
-const option=
-document.createElement("option");
-
-option.value=p.id;
-
-option.textContent=
-p.name+" — "+p.team;
-
-select.appendChild(option);
-
-});
-
-}
-
-
-function loadPlayerForEdit(){
-
-const id=
-document.getElementById("playerSelect").value;
-
-const editor=
-document.getElementById("playerEditor");
-
-
-if(!id){
-
-editor.style.display="none";
-
-return;
-
-}
-
-
-const p=
-appData.players.find(
-x=>String(x.id)===String(id)
-);
-
-if(!p)return;
-
-
-editor.style.display="block";
-
-document.getElementById(
-"selectedPlayerName"
-).textContent=
-p.name+" — "+p.team;
-
-
-document.getElementById(
-"editGoals"
-).value=p.goals||0;
-
-document.getElementById(
-"editAssists"
-).value=p.assists||0;
-
-document.getElementById(
-"editSaves"
-).value=p.saves||0;
-
-document.getElementById(
-"editPoints"
-).value=p.points||0;
-
-}
-
-
-/* =========================
-   SAVE PLAYER
-========================= */
-
-async function savePlayer(){
-
-if(!isAdmin){
-
-notify(
-"Əvvəlcə admin kimi daxil ol.",
-"warning"
-);
-
-return;
-
-}
-
-
-const id=
-document.getElementById("playerSelect").value;
-
-
-if(!id){
-
-notify(
-"Oyunçu seç.",
-"warning"
-);
-
-return;
-
-}
-
-
-const photoInput=
-document.getElementById("playerPhoto");
-
-
-const data={
-
-goals:
-Number(
-document.getElementById("editGoals").value
-)||0,
-
-assists:
-Number(
-document.getElementById("editAssists").value
-)||0,
-
-saves:
-Number(
-document.getElementById("editSaves").value
-)||0,
-
-points:
-Number(
-document.getElementById("editPoints").value
-)||0
-
-};
-
-
-if(
-photoInput.files &&
-photoInput.files[0]
+function addNotificationHistory(
+text,
+type="success"
 ){
 
-data.photo=
-await readFileAsDataURL(
-photoInput.files[0]
-);
+const notification={
 
-}
+id:
+Date.now()+
+Math.random(),
 
+text:String(text),
 
-try{
+type:type,
 
-const response=
-await fetch(
-"/api/players/"+encodeURIComponent(id),
-{
-method:"PUT",
-headers:{
-"Content-Type":"application/json"
-},
-credentials:"include",
-body:JSON.stringify(data)
-}
-);
+icon:
+getNotificationIcon(type),
 
+time:
+new Date().toISOString(),
 
-const result=
-await response.json();
+read:false
 
-
-if(!response.ok){
-
-notify(
-result.error||"Yadda saxlanılmadı.",
-"error"
-);
-
-return;
-
-}
-
-
-const index=
-appData.players.findIndex(
-p=>String(p.id)===String(id)
-);
-
-
-if(index!==-1){
-
-appData.players[index]=result.player;
-
-}
-
-
-photoInput.value="";
-
-
-renderPlayers();
-renderAdminPlayers();
-
-document.getElementById(
-"playerSelect"
-).value=id;
-
-
-notify(
-"✓ Oyunçu məlumatları yadda saxlanıldı.",
-"success"
-);
-
-
-}catch(e){
-
-console.error(e);
-
-notify(
-"Serverlə əlaqə yoxdur.",
-"error"
-);
-
-}
-
-}
-
-
-/* =========================
-   FILE
-========================= */
-
-function readFileAsDataURL(file){
-
-return new Promise(
-(resolve,reject)=>{
-
-const reader=
-new FileReader();
-
-reader.onload=()=>{
-resolve(reader.result);
 };
 
-reader.onerror=reject;
-
-reader.readAsDataURL(file);
-
-}
+notificationHistory.unshift(
+notification
 );
 
-}
+notificationHistory =
+notificationHistory.slice(0,50);
 
+saveNotificationHistory();
 
-/* =========================
-   TEAM SELECTS
-========================= */
-
-function renderAdminTeams(){
-
-const home=
-document.getElementById("matchHome");
-
-const away=
-document.getElementById("matchAway");
-
-
-if(!home||!away)return;
-
-
-home.innerHTML=
-'<option value="">Ev komandası</option>';
-
-away.innerHTML=
-'<option value="">Qonaq komandası</option>';
-
-
-appData.teams.forEach(team=>{
-
-const homeOption=
-document.createElement("option");
-
-homeOption.value=team.name;
-homeOption.textContent=team.name;
-
-home.appendChild(homeOption);
-
-
-const awayOption=
-document.createElement("option");
-
-awayOption.value=team.name;
-awayOption.textContent=team.name;
-
-away.appendChild(awayOption);
-
-});
+renderNotificationHistory();
 
 }
 
 
-/* =========================
-   ADD MATCH
-========================= */
+/* Format time */
 
-async function addMatch(){
+function formatNotificationTime(time){
 
-if(!isAdmin){
+const date =
+new Date(time);
 
-notify(
-"Əvvəlcə admin kimi daxil ol.",
-"warning"
+if(Number.isNaN(date.getTime())){
+return "";
+}
+
+const now =
+new Date();
+
+const diff =
+Math.floor(
+(now-date)/1000
 );
 
-return;
-
+if(diff<10){
+return "indi";
 }
 
-
-const home=
-document.getElementById("matchHome").value;
-
-const away=
-document.getElementById("matchAway").value;
-
-
-const homeScore=
-Number(
-document.getElementById("matchHomeScore").value
-)||0;
-
-const awayScore=
-Number(
-document.getElementById("matchAwayScore").value
-)||0;
-
-
-const message=
-document.getElementById("matchMessage");
-
-
-if(!home||!away){
-
-message.className="message error";
-message.textContent="İki komanda seç.";
-
-notify(
-"İki komanda seç.",
-"warning"
-);
-
-return;
-
+if(diff<60){
+return diff+" san əvvəl";
 }
 
+const minutes =
+Math.floor(diff/60);
 
-if(home===away){
-
-message.className="message error";
-message.textContent=
-"Eyni komanda seçilə bilməz.";
-
-notify(
-"Eyni komanda seçilə bilməz.",
-"warning"
-);
-
-return;
-
+if(minutes<60){
+return minutes+" dəq əvvəl";
 }
 
+const hours =
+Math.floor(minutes/60);
 
-try{
+if(hours<24){
+return hours+" saat əvvəl";
+}
 
-const response=
-await fetch(
-"/api/matches",
+const days =
+Math.floor(hours/24);
+
+if(days<7){
+return days+" gün əvvəl";
+}
+
+return date.toLocaleString(
+"az-AZ",
 {
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-credentials:"include",
-body:JSON.stringify({
-home,
-away,
-homeScore,
-awayScore
-})
+day:"2-digit",
+month:"2-digit",
+year:"numeric",
+hour:"2-digit",
+minute:"2-digit"
 }
 );
-
-
-const result=
-await response.json();
-
-
-if(!response.ok){
-
-message.className="message error";
-
-message.textContent=
-result.error||"Matç əlavə edilmədi.";
-
-notify(
-result.error||"Matç əlavə edilmədi.",
-"error"
-);
-
-return;
 
 }
 
 
-appData.matches.push(
-result.match
-);
+/* Render history */
 
+function renderNotificationHistory(){
 
-message.className="message success";
-message.textContent=
-"Matç əlavə edildi.";
-
-
+const container =
 document.getElementById(
-"matchHome"
-).value="";
+"notificationHistory"
+);
 
+const badge =
 document.getElementById(
-"matchAway"
-).value="";
-
-document.getElementById(
-"matchHomeScore"
-).value=0;
-
-document.getElementById(
-"matchAwayScore"
-).value=0;
-
-
-renderMatches();
-renderLeague();
-renderAdminMatches();
-
-
-notify(
-`⚽ ${home} ${homeScore}:${awayScore} ${away} — matç əlavə edildi.`,
-"success"
+"notificationCount"
 );
 
-
-}catch(e){
-
-console.error(e);
-
-message.className="message error";
-
-message.textContent=
-"Serverlə əlaqə yoxdur.";
-
-notify(
-"Serverlə əlaqə yoxdur.",
-"error"
-);
-
-}
-
-}
-
-
-/* =========================
-   ADMIN MATCHES
-========================= */
-
-function renderAdminMatches(){
-
-const c=
-document.getElementById("adminMatches");
-
-
-if(!appData.matches.length){
-
-c.innerHTML=
-'<div class="empty">Matç yoxdur.</div>';
-
+if(!container || !badge){
 return;
-
 }
 
 
-c.innerHTML=
-appData.matches.map(m=>`
-
-<div style="
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-padding:10px 0;
-border-bottom:1px solid #e5e7eb
-">
-
-<div>
-
-<strong>
-${escapeHTML(m.home)}
-</strong>
-
-${Number(m.homeScore)}
-:
-${Number(m.awayScore)}
-
-<strong>
-${escapeHTML(m.away)}
-</strong>
-
-</div>
+const unread =
+notificationHistory.filter(
+n=>!n.read
+).length;
 
 
-<button
-class="danger"
-onclick="deleteMatch('${m.id}')"
->
+if(unread>0){
 
-Sil
+badge.style.display="flex";
 
-</button>
-
-</div>
-
-`).join("");
-
-}
-
-
-/* =========================
-   DELETE MATCH
-========================= */
-
-async function deleteMatch(id){
-
-if(!isAdmin){
-
-notify(
-"Admin girişi tələb olunur.",
-"warning"
-);
-
-return;
-
-}
-
-
-if(
-!confirm(
-"Bu matçı silmək istəyirsən?"
-)
-)return;
-
-
-const match=
-appData.matches.find(
-m=>String(m.id)===String(id)
-);
-
-
-try{
-
-const response=
-await fetch(
-"/api/matches/"+encodeURIComponent(id),
-{
-method:"DELETE",
-credentials:"include"
-}
-);
-
-
-const result=
-await response.json();
-
-
-if(!response.ok){
-
-notify(
-result.error||"Matç silinmədi.",
-"error"
-);
-
-return;
-
-}
-
-
-appData.matches=
-appData.matches.filter(
-m=>String(m.id)!==String(id)
-);
-
-
-renderMatches();
-renderLeague();
-renderAdminMatches();
-
-
-if(match){
-
-notify(
-`🗑️ ${match.home} ${match.homeScore}:${match.awayScore} ${match.away} — matç silindi.`,
-"info"
-);
+badge.textContent =
+unread>99 ? "99+" : unread;
 
 }else{
 
-notify(
-"Matç silindi.",
-"info"
-);
+badge.style.display="none";
 
 }
 
 
-}catch(e){
+if(!notificationHistory.length){
 
-console.error(e);
+container.innerHTML=`
 
-notify(
-"Serverlə əlaqə yoxdur.",
-"error"
-);
+<div class="notification-empty">
 
-}
+🔕<br><br>
 
-}
+Hələ bildiriş yoxdur.
 
+</div>
 
-/* =========================
-   SECURITY
-========================= */
+`;
 
-function escapeHTML(value){
-
-return String(value??"")
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
+return;
 
 }
 
 
-/* =========================
-   ENTER KEY
-========================= */
+container.innerHTML =
+notificationHistory.map(n=>`
 
-document
-.getElementById("adminPassword")
-.addEventListener(
-"keydown",
-e=>{
+<div
+class="notification-history-item ${n.read ? "" : "unread"}"
+onclick="readNotification('${n.id}')"
+>
 
-if(e.key==="Enter"){
-loginAdmin();
-}
+<div class="notification-history-icon">
+${n.icon}
+</div>
 
-}
-);
+<div class="notification-history-content">
 
-
-/* =========================
-   START
-========================= */
-
-showPage("home");
-
+<div class="notification-history-text">
+${escapeHTML(n.text
+ loadNotifications();
 loadData();
 
 </script>
-
 </body>
-</html>
+</html>            
