@@ -688,58 +688,77 @@ panel.classList.remove("visible");
 
 async function loginAdmin(){
 
-const password=document.getElementById("adminPassword").value;
-const message=document.getElementById("loginMessage");
+    const password = document.getElementById("adminPassword").value.trim();
+    const message = document.getElementById("loginMessage");
 
-if(!password){
+    if(!password){
+        message.className = "message error";
+        message.textContent = "Şifrəni daxil et.";
+        return;
+    }
 
-message.className="message error";
-message.textContent="Şifrəni daxil et.";
-return;
+    message.className = "message";
+    message.textContent = "Serverə qoşulur...";
 
+    try{
+
+        const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                password: password
+            })
+        });
+
+        let result = {};
+
+        try {
+            result = await response.json();
+        } catch(e) {
+            result = {};
+        }
+
+        if(!response.ok){
+
+            message.className = "message error";
+            message.textContent =
+                result.error || "Server xətası: " + response.status;
+
+            return;
+        }
+
+        if(result.ok){
+
+            isAdmin = true;
+
+            message.className = "message success";
+            message.textContent = "Uğurla daxil oldun.";
+
+            document.getElementById("adminPassword").value = "";
+
+            updateAdminUI();
+            renderAdminPlayers();
+            renderAdminTeams();
+            renderAdminMatches();
+
+            return;
+        }
+
+        message.className = "message error";
+        message.textContent = "Serverdən düzgün cavab gəlmədi.";
+
+    }catch(error){
+
+        console.error("LOGIN ERROR:", error);
+
+        message.className = "message error";
+        message.textContent =
+            "Serverlə əlaqə yoxdur. Render serverini yoxla.";
+    }
 }
-
-try{
-
-const response=await fetch("/api/login",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-credentials:"same-origin",
-body:JSON.stringify({password})
-});
-
-const result=await response.json();
-
-if(!response.ok){
-
-message.className="message error";
-message.textContent=result.error||"Yanlış şifrə.";
-return;
-
-}
-
-isAdmin=true;
-
-message.className="message success";
-message.textContent="Uğurla daxil oldun.";
-
-document.getElementById("adminPassword").value="";
-
-updateAdminUI();
-
-renderAdminPlayers();
-renderAdminTeams();
-renderAdminMatches();
-
-}catch(e){
-
-message.className="message error";
-message.textContent="Serverlə əlaqə yoxdur.";
-
-}
-
-}
-
 
 /* LOGOUT */
 
