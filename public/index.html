@@ -1,1 +1,1134 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AliScore</title>
 
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f7fa;color:#111827}
+button,input,select{font:inherit}
+button{cursor:pointer}
+
+.header{background:#07111f;color:white;padding:16px 20px;position:sticky;top:0;z-index:100}
+.header-inner{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.logo{font-size:26px;font-weight:800}.logo span{color:#22c55e}
+
+.nav{display:flex;gap:7px;flex-wrap:wrap;max-width:1200px;margin:14px auto 0}
+.nav button{border:0;background:#172438;color:white;padding:10px 14px;border-radius:9px}
+.nav button:hover,.nav button.active{background:#16a34a}
+.admin-nav{margin-left:auto;background:#7c3aed!important}
+
+.container{max-width:1200px;margin:auto;padding:20px}
+.page{display:none}.page.active{display:block}
+
+.hero{background:linear-gradient(135deg,#07111f,#12365b);color:white;border-radius:18px;padding:30px;margin-bottom:20px}
+.hero h1{margin:0 0 8px;font-size:34px}.hero p{margin:0;color:#dbeafe}
+
+.card,.team-card,.player-card{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 3px 15px rgba(0,0,0,.06)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.team-grid,.player-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.team-card,.player-card{margin:0}
+.team-logo{font-size:48px;margin-bottom:8px}.team-name{font-size:20px;font-weight:800}
+
+.player-photo,.player-placeholder{width:90px;height:90px;border-radius:50%;margin-bottom:12px}
+.player-photo{object-fit:cover}.player-placeholder{background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:34px}
+
+.player-name{font-size:18px;font-weight:800}.player-team{color:#6b7280;margin:5px 0 12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.stat{background:#f3f4f6;border-radius:9px;padding:8px;text-align:center}
+.stat strong{display:block;font-size:18px}.stat small{color:#6b7280}
+
+.match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:15px;padding:16px 0;border-bottom:1px solid #e5e7eb}
+.match:last-child{border-bottom:0}.team-side{font-weight:700}.team-side.away{text-align:right}
+.score{font-size:24px;font-weight:900;background:#111827;color:white;padding:7px 12px;border-radius:10px;white-space:nowrap}
+
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 8px;border-bottom:1px solid #e5e7eb;text-align:center}
+th{background:#f3f4f6}td:nth-child(2),th:nth-child(2){text-align:left}
+.team-cell{font-weight:700}
+
+.login-box{max-width:430px;margin:30px auto}
+input,select{width:100%;border:1px solid #d1d5db;padding:12px;border-radius:9px;background:white;margin-bottom:10px}
+
+.primary,.secondary,.danger,.purple{border:0;color:white;padding:10px 15px;border-radius:9px;font-weight:700}
+.primary{background:#16a34a;padding:12px 18px}.secondary{background:#2563eb}.danger{background:#dc2626}.purple{background:#7c3aed}
+.primary:hover{background:#15803d}
+
+.admin-status{display:inline-block;padding:7px 11px;border-radius:20px;background:#fee2e2;color:#991b1b;font-size:13px;font-weight:700}
+.admin-status.logged{background:#dcfce7;color:#166534}
+
+.message{padding:12px;border-radius:9px;margin:10px 0;display:none}
+.message.error{display:block;background:#fee2e2;color:#991b1b}
+.message.success{display:block;background:#dcfce7;color:#166534}
+
+.admin-panel{display:none}.admin-panel.visible{display:block}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.empty{text-align:center;color:#6b7280;padding:30px}
+.footer{text-align:center;color:#6b7280;padding:30px 15px}
+
+@media(max-width:800px){
+.team-grid,.player-grid{grid-template-columns:repeat(2,1fr)}
+.grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+.logo{font-size:22px}.container{padding:12px}.hero{padding:22px}.hero h1{font-size:27px}
+.team-grid,.player-grid{grid-template-columns:1fr}
+.match{gap:8px}.score{font-size:18px;padding:6px 9px}
+th,td{padding:8px 4px;font-size:13px}.stats{grid-template-columns:repeat(2,1fr)}
+.edit-grid{grid-template-columns:1fr}
+.nav{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.nav button{white-space:nowrap}
+.admin-nav{margin-left:0}
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="header-inner">
+<div class="logo">Ali<span>Score</span></div>
+<div id="adminStatus" class="admin-status">Admin deyil</div>
+</div>
+
+<nav class="nav">
+<button onclick="showPage('home')" id="nav-home">Ana səhifə</button>
+<button onclick="showPage('matches')" id="nav-matches">Matçlar</button>
+<button onclick="showPage('league')" id="nav-league">Liqalar</button>
+<button onclick="showPage('teams')" id="nav-teams">Komandalar</button>
+<button onclick="showPage('players')" id="nav-players">Oyunçular</button>
+<button onclick="showPage('admin')" id="nav-admin" class="admin-nav">🔐 Admin</button>
+</nav>
+</header>
+
+<main class="container">
+
+<section id="page-home" class="page active">
+<div class="hero">
+<h1>AliScore</h1>
+<p>Mehle League üçün futbol nəticələri, komandalar və oyunçu statistikaları.</p>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>🏆 Mehle League</h2>
+<p>5 komanda</p>
+<button class="primary" onclick="showPage('league')">Turnir cədvəlinə bax</button>
+</div>
+
+<div class="card">
+<h2>⚽ Son matçlar</h2>
+<p>Bütün nəticələrə bax.</p>
+<button class="secondary" onclick="showPage('matches')">Matçlara bax</button>
+</div>
+</div>
+</section>
+
+<section id="page-matches" class="page">
+<div class="card">
+<h2>⚽ Matçlar</h2>
+<div id="matchesList"></div>
+</div>
+</section>
+
+<section id="page-league" class="page">
+<div class="card">
+<h2>🏆 Mehle League</h2>
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr>
+<th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
+<th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+</tr>
+</thead>
+<tbody id="leagueTable"></tbody>
+</table>
+</div>
+</div>
+</section>
+
+<section id="page-teams" class="page">
+<div class="card">
+<h2>👥 Komandalar</h2>
+<div id="teamsList" class="team-grid"></div>
+</div>
+</section>
+
+<section id="page-players" class="page">
+<div class="card">
+<h2>⚽ Oyunçular</h2>
+<div id="playersList" class="player-grid"></div>
+</div>
+</section>
+
+<section id="page-admin" class="page">
+
+<div id="loginBox" class="card login-box">
+<h2>🔐 Admin girişi</h2>
+<p>AliScore idarəetmə panelinə daxil olmaq üçün şifrəni yaz.</p>
+
+<input type="password" id="adminPassword" placeholder="Admin şifrəsi">
+
+<button class="purple" onclick="loginAdmin()" style="width:100%">
+Daxil ol
+</button>
+
+<div id="loginMessage" class="message"></div>
+</div>
+
+<div id="adminPanel" class="admin-panel">
+
+<div class="card">
+<h2>⚙️ AliScore Admin Panel</h2>
+<p>Buradan oyunçu statistikalarını və matçları idarə edə bilərsən.</p>
+<button class="danger" onclick="logoutAdmin()">Çıxış</button>
+</div>
+
+<div class="card">
+<h3>👤 Oyunçu seç</h3>
+<select id="playerSelect" onchange="loadPlayerForEdit()">
+<option value="">Oyunçu seç...</option>
+</select>
+</div>
+
+<div id="playerEditor" class="card" style="display:none">
+<h3>✏️ Oyunçu məlumatları</h3>
+
+<div id="selectedPlayerName" style="font-size:20px;font-weight:800;margin-bottom:15px"></div>
+
+<div class="edit-grid">
+<div><label>Qollar</label><input id="editGoals" type="number" min="0"></div>
+<div><label>Assistlər</label><input id="editAssists" type="number" min="0"></div>
+<div><label>Seyvlər</label><input id="editSaves" type="number" min="0"></div>
+<div><label>Xallar</label><input id="editPoints" type="number" min="0"></div>
+</div>
+
+<label>Oyunçu şəkli</label>
+<input type="file" id="playerPhoto" accept="image/*">
+
+<button class="primary" onclick="savePlayer()">💾 Yadda saxla</button>
+<div id="saveMessage" class="message"></div>
+</div>
+
+<div class="card">
+<h3>➕ Yeni matç əlavə et</h3>
+
+<select id="matchHome"><option value="">Ev komandası</option></select>
+<select id="matchAway"><option value="">Qonaq komandası</option></select>
+
+<div class="edit-grid">
+<div><label>Ev hesabı</label><input type="number" min="0" id="matchHomeScore" value="0"></div>
+<div><label>Qonaq hesabı</label><input type="number" min="0" id="matchAwayScore" value="0"></div>
+</div>
+
+<button class="primary" onclick="addMatch()">➕ Matç əlavə et</button>
+<div id="matchMessage" class="message"></div>
+</div>
+
+<div class="card">
+<h3>🗑️ Matçlar</h3>
+<div id="adminMatches"></div>
+</div>
+
+</div>
+</section>
+
+</main>
+
+<footer class="footer">AliScore © 2026</footer>
+
+<script>
+
+const DEFAULT_DATA = {
+
+leagues:[
+{id:"mehle-league",name:"Mehle League"}
+],
+
+teams:[
+{
+id:"xirdalan-wolves",
+name:"Xirdalan Wolves",
+logo:"🐺",
+players:["Ali","Emin","Raul","Huseyin (2 blok)"]
+},
+{
+id:"msn-fk",
+name:"MSN FK",
+logo:"⚽",
+players:["Fuad","Murad","Minə","Şamxal"]
+},
+{
+id:"xirdalan-united",
+name:"Xirdalan United",
+logo:"🟢",
+players:["Amil","Elmir","Huseyin","İsa","Ümüd"]
+},
+{
+id:"lotu-pisikler",
+name:"Lotu Pişiklər",
+logo:"🐱",
+players:["Kamran","Ayxan","Ramil"]
+},
+{
+id:"neweli-fk",
+name:"Neweli FK",
+logo:"🔵",
+players:["Tofik","Arda","Emil","Vəli"]
+}
+],
+
+players:[
+["ali","Ali","Xirdalan Wolves"],
+["emin","Emin","Xirdalan Wolves"],
+["raul","Raul","Xirdalan Wolves"],
+["huseyin-2-blok","Huseyin (2 blok)","Xirdalan Wolves"],
+
+["fuad","Fuad","MSN FK"],
+["murad","Murad","MSN FK"],
+["mine","Minə","MSN FK"],
+["samxal","Şamxal","MSN FK"],
+
+["amil","Amil","Xirdalan United"],
+["elmir","Elmir","Xirdalan United"],
+["huseyin","Huseyin","Xirdalan United"],
+["isa","İsa","Xirdalan United"],
+["umud","Ümüd","Xirdalan United"],
+
+["kamran","Kamran","Lotu Pişiklər"],
+["ayxan","Ayxan","Lotu Pişiklər"],
+["ramil","Ramil","Lotu Pişiklər"],
+
+["tofik","Tofik","Neweli FK"],
+["arda","Arda","Neweli FK"],
+["emil","Emil","Neweli FK"],
+["veli","Vəli","Neweli FK"]
+].map(p=>({
+id:p[0],
+name:p[1],
+team:p[2],
+goals:0,
+assists:0,
+saves:0,
+points:0,
+photo:""
+})),
+
+matches:[
+{id:1,home:"MSN FK",away:"Xirdalan United",homeScore:3,awayScore:0},
+{id:2,home:"Lotu Pişiklər",away:"MSN FK",homeScore:4,awayScore:1},
+{id:3,home:"Xirdalan Wolves",away:"Lotu Pişiklər",homeScore:5,awayScore:5},
+{id:4,home:"Neweli FK",away:"MSN FK",homeScore:10,awayScore:8},
+{id:5,home:"Xirdalan United",away:"Xirdalan Wolves",homeScore:3,awayScore:0},
+{id:6,home:"Xirdalan United",away:"Lotu Pişiklər",homeScore:1,awayScore:0},
+{id:7,home:"MSN FK",away:"Xirdalan Wolves",homeScore:9,awayScore:9},
+{id:8,home:"Neweli FK",away:"Xirdalan United",homeScore:3,awayScore:5}
+]
+
+};
+
+let appData=DEFAULT_DATA;
+let isAdmin=false;
+
+
+/* NAVIGATION */
+
+function showPage(page){
+
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+
+const target=document.getElementById("page-"+page);
+if(target)target.classList.add("active");
+
+document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+
+const nav=document.getElementById("nav-"+page);
+if(nav)nav.classList.add("active");
+
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+
+/* DATA */
+
+async function loadData(){
+
+try{
+
+const response=await fetch("/api/data",{credentials:"same-origin"});
+
+if(!response.ok)throw new Error();
+
+const result=await response.json();
+
+const serverData=result.data;
+
+if(
+serverData &&
+Array.isArray(serverData.teams) &&
+serverData.teams.length>0 &&
+Array.isArray(serverData.players) &&
+serverData.players.length>0
+){
+
+appData=serverData;
+
+}else{
+
+appData=DEFAULT_DATA;
+
+}
+
+isAdmin=!!result.isAdmin;
+
+}catch(error){
+
+console.log("Server data istifadə olunmadı. Default data yükləndi.");
+
+appData=DEFAULT_DATA;
+isAdmin=false;
+
+}
+
+renderEverything();
+updateAdminUI();
+
+}
+
+
+/* RENDER */
+
+function renderEverything(){
+
+renderMatches();
+renderLeague();
+renderTeams();
+renderPlayers();
+renderAdminPlayers();
+renderAdminTeams();
+renderAdminMatches();
+
+}
+
+
+/* MATCHES */
+
+function renderMatches(){
+
+const c=document.getElementById("matchesList");
+
+if(!appData.matches.length){
+
+c.innerHTML='<div class="empty">Hələ matç yoxdur.</div>';
+return;
+
+}
+
+c.innerHTML=appData.matches.map(m=>`
+
+<div class="match">
+
+<div class="team-side">
+${escapeHTML(m.home)}
+</div>
+
+<div class="score">
+${Number(m.homeScore)} : ${Number(m.awayScore)}
+</div>
+
+<div class="team-side away">
+${escapeHTML(m.away)}
+</div>
+
+</div>
+
+`).join("");
+
+}
+
+
+/* TABLE */
+
+function calculateTable(){
+
+const table={};
+
+appData.teams.forEach(team=>{
+
+table[team.name]={
+team:team.name,
+p:0,w:0,d:0,l:0,
+gf:0,ga:0,gd:0,pts:0
+};
+
+});
+
+appData.matches.forEach(m=>{
+
+if(!table[m.home]||!table[m.away])return;
+
+const h=table[m.home];
+const a=table[m.away];
+
+const hs=Number(m.homeScore)||0;
+const as=Number(m.awayScore)||0;
+
+h.p++;
+a.p++;
+
+h.gf+=hs;
+h.ga+=as;
+
+a.gf+=as;
+a.ga+=hs;
+
+if(hs>as){
+
+h.w++;
+a.l++;
+h.pts+=3;
+
+}else if(hs<as){
+
+a.w++;
+h.l++;
+a.pts+=3;
+
+}else{
+
+h.d++;
+a.d++;
+h.pts++;
+a.pts++;
+
+}
+
+});
+
+Object.values(table).forEach(r=>r.gd=r.gf-r.ga);
+
+return Object.values(table).sort((a,b)=>
+b.pts-a.pts||b.gd-a.gd||b.gf-a.gf
+);
+
+}
+
+
+function renderLeague(){
+
+const tbody=document.getElementById("leagueTable");
+
+const table=calculateTable();
+
+tbody.innerHTML=table.map((r,i)=>`
+
+<tr>
+
+<td><strong>${i+1}</strong></td>
+
+<td class="team-cell">
+${escapeHTML(r.team)}
+</td>
+
+<td>${r.p}</td>
+<td>${r.w}</td>
+<td>${r.d}</td>
+<td>${r.l}</td>
+<td>${r.gf}</td>
+<td>${r.ga}</td>
+
+<td>
+${r.gd>0?"+":""}${r.gd}
+</td>
+
+<td><strong>${r.pts}</strong></td>
+
+</tr>
+
+`).join("");
+
+}
+
+
+/* TEAMS */
+
+function renderTeams(){
+
+const c=document.getElementById("teamsList");
+
+c.innerHTML=appData.teams.map(team=>{
+
+const players=appData.players.filter(p=>p.team===team.name);
+
+return`
+
+<div class="team-card">
+
+<div class="team-logo">
+${team.logo||"⚽"}
+</div>
+
+<div class="team-name">
+${escapeHTML(team.name)}
+</div>
+
+<p>${players.length} oyunçu</p>
+
+${players.map(p=>`
+<div style="margin:7px 0">
+⚽ ${escapeHTML(p.name)}
+</div>
+`).join("")}
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+/* PLAYERS */
+
+function renderPlayers(){
+
+const c=document.getElementById("playersList");
+
+c.innerHTML=appData.players.map(p=>{
+
+const photo=p.photo||"";
+
+return`
+
+<div class="player-card">
+
+${
+photo
+?
+`<img class="player-photo" src="${photo}" alt="">`
+:
+`<div class="player-placeholder">⚽</div>`
+}
+
+<div class="player-name">
+${escapeHTML(p.name)}
+</div>
+
+<div class="player-team">
+${escapeHTML(p.team)}
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<strong>${Number(p.goals)||0}</strong>
+<small>Qol</small>
+</div>
+
+<div class="stat">
+<strong>${Number(p.assists)||0}</strong>
+<small>Assist</small>
+</div>
+
+<div class="stat">
+<strong>${Number(p.saves)||0}</strong>
+<small>Save</small>
+</div>
+
+<div class="stat">
+<strong>${Number(p.points)||0}</strong>
+<small>Xal</small>
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+/* ADMIN */
+
+function updateAdminUI(){
+
+const status=document.getElementById("adminStatus");
+
+const login=document.getElementById("loginBox");
+const panel=document.getElementById("adminPanel");
+
+if(isAdmin){
+
+status.textContent="✓ Admin";
+status.classList.add("logged");
+
+login.style.display="none";
+panel.classList.add("visible");
+
+}else{
+
+status.textContent="Admin deyil";
+status.classList.remove("logged");
+
+login.style.display="block";
+panel.classList.remove("visible");
+
+}
+
+}
+
+
+/* LOGIN */
+
+async function loginAdmin(){
+
+const password=document.getElementById("adminPassword").value;
+const message=document.getElementById("loginMessage");
+
+if(!password){
+
+message.className="message error";
+message.textContent="Şifrəni daxil et.";
+return;
+
+}
+
+try{
+
+const response=await fetch("/api/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+credentials:"same-origin",
+body:JSON.stringify({password})
+});
+
+const result=await response.json();
+
+if(!response.ok){
+
+message.className="message error";
+message.textContent=result.error||"Yanlış şifrə.";
+return;
+
+}
+
+isAdmin=true;
+
+message.className="message success";
+message.textContent="Uğurla daxil oldun.";
+
+document.getElementById("adminPassword").value="";
+
+updateAdminUI();
+
+renderAdminPlayers();
+renderAdminTeams();
+renderAdminMatches();
+
+}catch(e){
+
+message.className="message error";
+message.textContent="Serverlə əlaqə yoxdur.";
+
+}
+
+}
+
+
+/* LOGOUT */
+
+async function logoutAdmin(){
+
+try{
+await fetch("/api/logout",{
+method:"POST",
+credentials:"same-origin"
+});
+}catch(e){}
+
+isAdmin=false;
+
+updateAdminUI();
+showPage("home");
+
+}
+
+
+/* ADMIN PLAYERS */
+
+function renderAdminPlayers(){
+
+const select=document.getElementById("playerSelect");
+
+if(!select)return;
+
+select.innerHTML='<option value="">Oyunçu seç...</option>';
+
+appData.players.forEach(p=>{
+
+const option=document.createElement("option");
+
+option.value=p.id;
+option.textContent=p.name+" — "+p.team;
+
+select.appendChild(option);
+
+});
+
+}
+
+
+function loadPlayerForEdit(){
+
+const id=document.getElementById("playerSelect").value;
+const editor=document.getElementById("playerEditor");
+
+if(!id){
+
+editor.style.display="none";
+return;
+
+}
+
+const p=appData.players.find(x=>String(x.id)===String(id));
+
+if(!p)return;
+
+editor.style.display="block";
+
+document.getElementById("selectedPlayerName").textContent=
+p.name+" — "+p.team;
+
+document.getElementById("editGoals").value=p.goals||0;
+document.getElementById("editAssists").value=p.assists||0;
+document.getElementById("editSaves").value=p.saves||0;
+document.getElementById("editPoints").value=p.points||0;
+
+}
+
+
+/* SAVE PLAYER */
+
+async function savePlayer(){
+
+if(!isAdmin){
+
+alert("Əvvəlcə admin kimi daxil ol.");
+return;
+
+}
+
+const id=document.getElementById("playerSelect").value;
+
+if(!id){
+
+alert("Oyunçu seç.");
+return;
+
+}
+
+const photoInput=document.getElementById("playerPhoto");
+
+const data={
+goals:Number(document.getElementById("editGoals").value)||0,
+assists:Number(document.getElementById("editAssists").value)||0,
+saves:Number(document.getElementById("editSaves").value)||0,
+points:Number(document.getElementById("editPoints").value)||0
+};
+
+if(photoInput.files&&photoInput.files[0]){
+
+data.photo=await readFileAsDataURL(photoInput.files[0]);
+
+}
+
+try{
+
+const response=await fetch("/api/players/"+encodeURIComponent(id),{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+credentials:"same-origin",
+body:JSON.stringify(data)
+});
+
+const result=await response.json();
+
+if(!response.ok){
+
+alert(result.error||"Yadda saxlanılmadı.");
+return;
+
+}
+
+const index=appData.players.findIndex(p=>String(p.id)===String(id));
+
+if(index!==-1)appData.players[index]=result.player;
+
+photoInput.value="";
+
+renderPlayers();
+renderAdminPlayers();
+
+document.getElementById("playerSelect").value=id;
+
+alert("Məlumat yadda saxlanıldı.");
+
+}catch(e){
+
+alert("Serverlə əlaqə yoxdur.");
+
+}
+
+}
+
+
+/* FILE */
+
+function readFileAsDataURL(file){
+
+return new Promise((resolve,reject)=>{
+
+const reader=new FileReader();
+
+reader.onload=()=>resolve(reader.result);
+reader.onerror=reject;
+
+reader.readAsDataURL(file);
+
+});
+
+}
+
+
+/* TEAM SELECTS */
+
+function renderAdminTeams(){
+
+const home=document.getElementById("matchHome");
+const away=document.getElementById("matchAway");
+
+if(!home||!away)return;
+
+home.innerHTML='<option value="">Ev komandası</option>';
+away.innerHTML='<option value="">Qonaq komandası</option>';
+
+appData.teams.forEach(team=>{
+
+home.innerHTML+=`
+<option value="${escapeHTML(team.name)}">
+${escapeHTML(team.name)}
+</option>`;
+
+away.innerHTML+=`
+<option value="${escapeHTML(team.name)}">
+${escapeHTML(team.name)}
+</option>`;
+
+});
+
+}
+
+
+/* ADD MATCH */
+
+async function addMatch(){
+
+if(!isAdmin){
+
+alert("Əvvəlcə admin kimi daxil ol.");
+return;
+
+}
+
+const home=document.getElementById("matchHome").value;
+const away=document.getElementById("matchAway").value;
+
+const homeScore=Number(document.getElementById("matchHomeScore").value)||0;
+const awayScore=Number(document.getElementById("matchAwayScore").value)||0;
+
+const message=document.getElementById("matchMessage");
+
+if(!home||!away){
+
+message.className="message error";
+message.textContent="İki komanda seç.";
+return;
+
+}
+
+if(home===away){
+
+message.className="message error";
+message.textContent="Eyni komanda seçilə bilməz.";
+return;
+
+}
+
+try{
+
+const response=await fetch("/api/matches",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+credentials:"same-origin",
+body:JSON.stringify({home,away,homeScore,awayScore})
+});
+
+const result=await response.json();
+
+if(!response.ok){
+
+message.className="message error";
+message.textContent=result.error||"Matç əlavə edilmədi.";
+return;
+
+}
+
+appData.matches.push(result.match);
+
+message.className="message success";
+message.textContent="Matç əlavə edildi.";
+
+document.getElementById("matchHome").value="";
+document.getElementById("matchAway").value="";
+document.getElementById("matchHomeScore").value=0;
+document.getElementById("matchAwayScore").value=0;
+
+renderMatches();
+renderLeague();
+renderAdminMatches();
+
+}catch(e){
+
+message.className="message error";
+message.textContent="Serverlə əlaqə yoxdur.";
+
+}
+
+}
+
+
+/* ADMIN MATCHES */
+
+function renderAdminMatches(){
+
+const c=document.getElementById("adminMatches");
+
+if(!appData.matches.length){
+
+c.innerHTML='<div class="empty">Matç yoxdur.</div>';
+return;
+
+}
+
+c.innerHTML=appData.matches.map(m=>`
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+padding:10px 0;
+border-bottom:1px solid #e5e7eb">
+
+<div>
+<strong>${escapeHTML(m.home)}</strong>
+${Number(m.homeScore)} :
+${Number(m.awayScore)}
+<strong>${escapeHTML(m.away)}</strong>
+</div>
+
+<button class="danger" onclick="deleteMatch('${m.id}')">
+Sil
+</button>
+
+</div>
+
+`).join("");
+
+}
+
+
+/* DELETE */
+
+async function deleteMatch(id){
+
+if(!isAdmin){
+
+alert("Admin girişi tələb olunur.");
+return;
+
+}
+
+if(!confirm("Bu matçı silmək istəyirsən?"))return;
+
+try{
+
+const response=await fetch("/api/matches/"+encodeURIComponent(id),{
+method:"DELETE",
+credentials:"same-origin"
+});
+
+const result=await response.json();
+
+if(!response.ok){
+
+alert(result.error||"Matç silinmədi.");
+return;
+
+}
+
+appData.matches=appData.matches.filter(
+m=>String(m.id)!==String(id)
+);
+
+renderMatches();
+renderLeague();
+renderAdminMatches();
+
+}catch(e){
+
+alert("Serverlə əlaqə yoxdur.");
+
+}
+
+}
+
+
+/* SECURITY */
+
+function escapeHTML(value){
+
+return String(value??"")
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
+
+}
+
+
+/* ENTER */
+
+document.getElementById("adminPassword").addEventListener("keydown",e=>{
+
+if(e.key==="Enter")loginAdmin();
+
+});
+
+
+/* START */
+
+showPage("home");
+loadData();
+
+</script>
+
+</body>
+</html>
